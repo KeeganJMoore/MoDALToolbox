@@ -442,7 +442,7 @@ classdef MoDAL
             xlim([minFreq maxFreq])
         end
 
-        function PlotFRF(time,signal,force,minFreq,maxFreq,options)
+        function PlotFRF(time,signal,force,minFreq,maxFreq,Label,Color,Same)
             %
             % Plots the FRF of the signal x.
             %
@@ -460,16 +460,16 @@ classdef MoDAL
             % color - An N x 3 vector for colors.
             % same - If plotting in a loop, set this to 1 to keep plots on
             %        the same figure.
-
+            %
             arguments
                 time (:,1) double
                 signal (:,1) double
                 force (:,1) double
                 minFreq double
                 maxFreq double
-                options.label string = '';
-                options.color double = [0 0 0];
-                options.same double = 0;
+                Label string = '';
+                Color double = [0 0 0];
+                Same double = 0;
             end
             dt = time(2)-time(1);
             L = length(time);
@@ -481,23 +481,23 @@ classdef MoDAL
             Phase(abs(Phase) < tol) = 0;
             Phase = unwrap(angle(Phase));
             FFx = abs(Fx(1:length(f))./FF(1:length(f)));
-            if options.same ~= 1
+            if Same ~= 1
                 figure
             end
             subplot(2,1,1)
-            semilogy(f,FFx,'Color',options.color)
+            semilogy(f,FFx,'Color',Color)
             xlabel('Frequency [Hz]')
             xlim([minFreq maxFreq])
-            if strcmp(options.label,'Acc')
+            if strcmp(Label,'Acc')
                 ylabel({'Accelerance','[(m/s^2)/N]'})
-            elseif strcmp(options.label,'Vel')
+            elseif strcmp(Label,'Vel')
                 ylabel({'Mobility','[(m/s)/N]'})
             else
                 ylabel({'Receptance','[m/N]'})
             end
 
             subplot(2,1,2)
-            plot(f,Phase,'Color',options.color)
+            plot(f,Phase,'Color',Color)
             xlabel('Frequency [Hz]')
             ylabel('Angle [rad]')
             xlim([minFreq maxFreq])
@@ -509,7 +509,7 @@ classdef MoDAL
             % Required Inputs
             % ---------------------------------------------
             % time - Time vector
-            % signal - Signal
+            % signal - Signal with dimensions N x 1
             % minFreq - Lower limit of the frequency axis for the FFT.
             % maxFreq - Upper limit of the frequency axis for the FFT.
             %
@@ -563,7 +563,7 @@ classdef MoDAL
             % Required Inputs
             % ---------------------------------------------
             % time - Time vector
-            % signal - Signal
+            % signal - Signal with dimensions
             % minFreq - Minimum frequency computed in the WT.
             % maxFreq - Maximum frequency computed in the WT.
             %
@@ -640,7 +640,7 @@ classdef MoDAL
             % Required Inputs
             % ---------------------------------------------
             % time - Time vector
-            % signal - Signal
+            % signal - Signal with dimensions N x 1
             % minFreq - Minimum frequency computed in the WT.
             % maxFreq - Maximum frequency computed in the WT.
             %

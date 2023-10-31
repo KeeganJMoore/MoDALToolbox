@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.0.7";
+        Version = "1.0.8";
     end
 
     methods(Static)
@@ -296,10 +296,10 @@ classdef MoDAL
             %
             % Inputs
             % ------
-            % signal = signal with dimensions N x 1
-            % samplingFreq = sampling frequency
-            % minFreqBound = low frequency bound
-            % maxFreqBound = high frequency bound
+            % time - Time vector
+            % signal - Signal with dimensions
+            % minFreq - Minimum frequency computed in the WT.
+            % maxFreq - Maximum frequency computed in the WT.
             %
             % Optional Inputs
             % ---------------
@@ -548,7 +548,7 @@ classdef MoDAL
             % Required Inputs
             % ---------------------------------------------
             % time - Time vector
-            % signal - Signal with dimensions N x 1
+            % signal - Signal with dimensions
             % minFreq - Minimum frequency computed in the WT.
             % maxFreq - Maximum frequency computed in the WT.
             %

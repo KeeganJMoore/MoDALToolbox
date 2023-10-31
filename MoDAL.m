@@ -127,7 +127,7 @@ classdef MoDAL
             % Required Inputs
             % ---------------------------------------------
             % time - Time vector
-            % force - Signal 
+            % force - Signal with dimensions N x 1
             %
             % Optional Inputs (Uses Name-value format)
             % ---------------------------------------------
@@ -188,7 +188,7 @@ classdef MoDAL
 
         end
 
-        function ProcessRecData(textFileName,options)
+        function ProcessRecData(TextFileName,options)
             % This code loads the data stored inside the Run folders. Do not remove the
             % text files from the Run folders.
             %
@@ -197,7 +197,7 @@ classdef MoDAL
             % Moore.
             %
             arguments
-                textFileName string
+                TextFileName string
                 options.cutOffFreq double = 3;
                 options.order double = 3;
                 options.endTime double = 1e5;
@@ -210,7 +210,7 @@ classdef MoDAL
                 elseif strfind(A(ij).name,'.mat') > 0
                 elseif strfind(A(ij).name,'Run') > 0
                     if u == 1
-                        FName1 = append(A(ij).name,'/',textFileName);
+                        FName1 = append(A(ij).name,'/',TextFileName);
                         File1 = fopen(FName1);
                         Qa = textscan(File1,'%s',300);
                         P = char(Qa{1});
@@ -223,7 +223,7 @@ classdef MoDAL
                         fclose(File1);
                     end
                     A(ij).name
-                    FName1 = append(A(ij).name,'/',textFileName);
+                    FName1 = append(A(ij).name,'/',TextFileName);
                     File1 = fopen(FName1);
                     Qa = textscan(File1,'%s',R);
                     P = char(Qa{1});
@@ -297,7 +297,7 @@ classdef MoDAL
             % Inputs
             % ------
             % time - Time vector
-            % signal - Signal
+            % signal - Signal with dimensions
             % minFreq - Minimum frequency computed in the WT.
             % maxFreq - Maximum frequency computed in the WT.
             %
@@ -386,31 +386,24 @@ classdef MoDAL
         end
 
         % Plot FFT/FRF
-        function PlotFFT(time,signal,minFreq,maxFreq,options)
-            %
-            % Plots the FFT of a signal.
-            %
-            % Reqired Inputs
-            % --------------
-            % time - Time vector
-            % signal - Signal
-            % minFreq - Minimum frequency computed in the FFT.
-            % maxFreq - Maximum frequency computed in the FFT.
-            %
-            % Optional Inputs
-            % ---------------
-            % label - A character string describing the type of signal (see YLabel).
-            % color - An N x 3 vector for colors.
-            % same - If plotting in a loop, set this to 1 to keep plots on
+        function PlotFFT(time,signal,minFreq,maxFreq,Label,Color,Same)
+            % Plots the FFT of the signal x.
+            % t - Time vector
+            % x - Signal with dimensions N x 1
+            % minFreq - Minimum frequency shown in the FFT.
+            % maxFreq - Maximum frequency shown in the FFT.
+            % Label - A character string describing the type of signal (see YLabel).
+            % Color - An N x 3 vector for colors.
+            % Same - If plotting in a loop, set this to 1 to keep plots on
             %        the same figure.
             arguments
                 time double
                 signal double
                 minFreq double
                 maxFreq double
-                options.label string = '';
-                options.color double = [0 0 0];
-                options.same double = 0;
+                Label string = '';
+                Color double = [0 0 0];
+                Same double = 0;
             end
 
             dt = time(2)-time(1);
@@ -419,85 +412,77 @@ classdef MoDAL
             FFx = 2/L*fft(signal);
             Phase = unwrap(angle(FFx(1:length(f))));
             FFx = abs(FFx(1:length(f)));
-            if options.same ~= 1
+            if Same ~= 1
                 figure
             end
             subplot(2,1,1)
-            semilogy(f,FFx,'Color',options.color)
+            semilogy(f,FFx,'Color',Color)
             xlabel('Frequency [Hz]')
             xlim([minFreq maxFreq])
-            if strcmp(options.label,'Acc')
+            if strcmp(Label,'Acc')
                 ylabel({'Acc.','[m/s^2]'})
-            elseif strcmp(options.label,'Vel')
+            elseif strcmp(Label,'Vel')
                 ylabel({'Vel. [m/s]'})
-            elseif strcmp(options.label,'Disp')
+            elseif strcmp(Label,'Disp')
                 ylabel({'Disp. [m]'})
             end
 
             subplot(2,1,2)
-            plot(f,Phase,'Color',options.color)
+            plot(f,Phase,'Color',Color)
 
             xlabel('Frequency [Hz]')
             ylabel('Angle [rad]')
             xlim([minFreq maxFreq])
         end
 
-        function PlotFRF(time,signal,force,minFreq,maxFreq,options)
-            %
+        function PlotFRF(time,signal,Force,minFreq,maxFreq,Label,Color,Same)
             % Plots the FRF of the signal x.
-            %
-            % Reqired Inputs
-            % --------------
-            % time - Time vector
-            % signal - Signal
-            % force - force signal
-            % minFreq - Minimum frequency computed in the FFT.
-            % maxFreq - Maximum frequency computed in the FFT.
-            %
-            % Optional Inputs
-            % ---------------
-            % label - A character string describing the type of signal (see YLabel).
-            % color - An N x 3 vector for colors.
-            % same - If plotting in a loop, set this to 1 to keep plots on
+            % t - Time vector.
+            % x - Signal with dimensions N x 1.
+            % Force -  The applied force vector.
+            % minFreq - Minimum frequency shown in the FFT.
+            % maxFreq - Maximum frequency shown in the FFT.
+            % Label - A character string describing the type of signal (see YLabel).
+            % Color - An N x 3 vector for colors.
+            % Same - If plotting in a loop, set this to 1 to keep plots on
             %        the same figure.
-
             arguments
                 time (:,1) double
                 signal (:,1) double
-                force (:,1) double
+                Force (:,1) double
                 minFreq double
                 maxFreq double
-                options.label string = '';
-                options.color double = [0 0 0];
-                options.same double = 0;
+                Label string = '';
+                Color double = [0 0 0];
+                Same double = 0;
             end
             dt = time(2)-time(1);
             L = length(time);
             f = 1/dt*(0:L/2)/L;
             Fx = 2/L*fft(signal,L);
-            FF = 2/L*fft(force,L);
+            FF = 2/L*fft(Force,L);
             Phase = Fx(1:length(f))./FF(1:length(f));
             tol = 1e-6;
             Phase(abs(Phase) < tol) = 0;
             Phase = unwrap(angle(Phase));
             FFx = abs(Fx(1:length(f))./FF(1:length(f)));
-            if options.same ~= 1
+            if Same ~= 1
                 figure
             end
             subplot(2,1,1)
-            semilogy(f,FFx,'Color',options.color)
+            semilogy(f,FFx,'Color',Color)
             xlabel('Frequency [Hz]')
             xlim([minFreq maxFreq])
-            if strcmp(options.label,'Acc')
+            if strcmp(Label,'Acc')
                 ylabel({'Accelerance','[(m/s^2)/N]'})
-            elseif strcmp(options.label,'Vel')
+            elseif strcmp(Label,'Vel')
                 ylabel({'Mobility','[(m/s)/N]'})
             else
                 ylabel({'Receptance','[m/N]'})
             end
 
             subplot(2,1,2)
-            plot(f,Phase,'Color',options.color)
+            plot(f,Phase,'Color',Color)
             xlabel('Frequency [Hz]')
             ylabel('Angle [rad]')
             xlim([minFreq maxFreq])
@@ -509,7 +494,7 @@ classdef MoDAL
             % Required Inputs
             % ---------------------------------------------
             % time - Time vector
-            % signal - Signal
+            % signal - Signal with dimensions N x 1
             % minFreq - Lower limit of the frequency axis for the FFT.
             % maxFreq - Upper limit of the frequency axis for the FFT.
             %
@@ -563,7 +548,7 @@ classdef MoDAL
             % Required Inputs
             % ---------------------------------------------
             % time - Time vector
-            % signal - Signal
+            % signal - Signal with dimensions
             % minFreq - Minimum frequency computed in the WT.
             % maxFreq - Maximum frequency computed in the WT.
             %
@@ -640,7 +625,7 @@ classdef MoDAL
             % Required Inputs
             % ---------------------------------------------
             % time - Time vector
-            % signal - Signal
+            % signal - Signal with dimensions N x 1
             % minFreq - Minimum frequency computed in the WT.
             % maxFreq - Maximum frequency computed in the WT.
             %
@@ -1717,35 +1702,58 @@ classdef MoDAL
                 options.mirrorf string = 'e';
                 options.chp1 double = 0.2;
                 options.chp2 double = 0.2;
+                options.optimizeCutoff = 0;
             end
-            
             dt = time(2)-time(1);
 
             [x_mirror,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd] = MoDAL.MirrorSignal(time,signal, ...
                 options.mirrori,options.mirrorf,options.chp1,options.chp2);
 
             X = hilbert(x_mirror);
+
             theta1 = unwrap(angle(X));
             omega1 = gradient(theta1)/dt/(2*pi);
-            Amp1 = abs(X);
+            amp1 = abs(X);
             Fs = 1/dt;
             Fnyq = Fs/2;
+            if options.optimizeCutoff == 1
+                [signalPeaks,peakIndex] = findpeaks(abs(x_mirror));
+                t = 0:dt:(length(x_mirror)-1)*dt;
+                signalAmpEst = interp1(t(peakIndex),signalPeaks,t,'linear','extrap');
+
+                opts = optimoptions("patternsearch","Display","iter");
+
+                FiltOut = patternsearch(@(x) MoDAL.OptimizeCutoff(x,Fnyq, ...
+                    amp1,signalAmpEst),[1 3],[],[],[],[],10/t(end),Fnyq/2,[],opts);
+                options.cutoffFreq = FiltOut(1);
+            end
             Fcs = options.cutoffFreq/Fnyq;
             [b,a] = butter(options.filtOrder,Fcs,'low');
             theta2 = filtfilt(b,a,theta1);
             omega2 = filtfilt(b,a,omega1);
-            amp2 = filtfilt(b,a,Amp1);
-
+            amp2 = filtfilt(b,a,amp1);
             amp = MoDAL.UnmirrorSignal(amp2,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd);
             theta = MoDAL.UnmirrorSignal(theta2,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd);
             omega = MoDAL.UnmirrorSignal(omega2,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd);
         end
     end
 
-    
 
     %%%%% Static Private methods
     methods (Static,Access=private)
+
+        function P = OptimizeCutoff(x,Fnyq,amp,ampEst)
+            arguments
+                x double
+                Fnyq double
+                amp (:,1) double
+                ampEst (:,1) double
+            end
+            Fcs = x(1)/Fnyq;
+            [b,a] = butter(3,Fcs,'low');
+            amp2 = filtfilt(b,a,amp);
+            P = sum(abs(ampEst-amp2));
+        end
 
         function TSPlot(time,signal,options)
             arguments
@@ -1900,7 +1908,8 @@ classdef MoDAL
             end
         end
 
-        function [x_mirror,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd] = MirrorSignal(time,signal,mirrori,mirrorf,chp1,chp2)
+        function [x_mirror,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd] = ...
+                MirrorSignal(time,signal,mirrori,mirrorf,chp1,chp2)
             arguments
                 time (:,1) double
                 signal (:,1) double

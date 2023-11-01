@@ -761,6 +761,7 @@ classdef MoDAL
                 options.mirrorf string = 'e';
                 options.colorMap double = flipud(gray);
                 options.legends cell = {'Signal 1','Signal 2'};
+                options.legendsLoc string = 'northeast';
                 options.wtPower double = 1;
                 options.title string = '';
             end
@@ -773,7 +774,7 @@ classdef MoDAL
             hold on
             MoDAL.TSPlot(time2,signal2,color='c',fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd)
-            legend(options.legends,'Location','best','orientation','horizontal')
+            legend(options.legends,'Location',options.legendsLoc,'orientation','horizontal')
             title(options.title)
 
             % Compute Wavelet Transforms
@@ -860,6 +861,7 @@ classdef MoDAL
                 options.mirrorf string = 'e';
                 options.colorMap double = flipud(gray);
                 options.legends cell = {'Signal 1','Signal 2'};
+                options.legendsLoc string = 'northeast';
                 options.wtPower double = 1;
                 options.title string = '';
             end
@@ -881,7 +883,7 @@ classdef MoDAL
             hold on
             MoDAL.TSPlot(time2,signal2,color='c',fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd)
-            legend(options.legends,'Location','best','orientation','horizontal')
+            legend(options.legends,'Location',options.legendsLoc,'orientation','horizontal')
             title(options.title)
 
             % Compute Wavelet Transforms
@@ -910,7 +912,7 @@ classdef MoDAL
             hold on
             MoDAL.FTPlot(time2,signal2,minFreq,maxFreq,force=F2,color='c', ...
                 label=options.label,fontSize=options.fontSize)
-            legend(options.legends,'Location','best','orientation','horizontal')
+            legend(options.legends,'Location',options.legendsLoc,'orientation','horizontal')
             drawnow;
             S4.Position(2) = 0.12464;
         end

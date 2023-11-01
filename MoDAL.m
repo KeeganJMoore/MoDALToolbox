@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.0.9";
+        Version = "1.0.10";
     end
 
     methods(Static)
@@ -1208,7 +1208,7 @@ classdef MoDAL
                     case 'Tension'
                         ylabel('Tension [N]')
                     otherwise
-                        ylabel('Signal [\cdot]')
+                        ylabel('Signal [s]')
                 end
             else
                 switch Label

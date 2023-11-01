@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.0.10";
+        Version = "1.0.11";
     end
 
     methods(Static)
@@ -127,7 +127,7 @@ classdef MoDAL
             % Required Inputs
             % ---------------------------------------------
             % time - Time vector
-            % force - Signal with dimensions N x 1
+            % force - Signal 
             %
             % Optional Inputs (Uses Name-value format)
             % ---------------------------------------------
@@ -297,7 +297,7 @@ classdef MoDAL
             % Inputs
             % ------
             % time - Time vector
-            % signal - Signal with dimensions
+            % signal - Signal 
             % minFreq - Minimum frequency computed in the WT.
             % maxFreq - Maximum frequency computed in the WT.
             %
@@ -389,7 +389,7 @@ classdef MoDAL
         function PlotFFT(time,signal,minFreq,maxFreq,Label,Color,Same)
             % Plots the FFT of the signal x.
             % t - Time vector
-            % x - Signal with dimensions N x 1
+            % x - Signal
             % minFreq - Minimum frequency shown in the FFT.
             % maxFreq - Maximum frequency shown in the FFT.
             % Label - A character string describing the type of signal (see YLabel).
@@ -438,7 +438,7 @@ classdef MoDAL
         function PlotFRF(time,signal,Force,minFreq,maxFreq,Label,Color,Same)
             % Plots the FRF of the signal x.
             % t - Time vector.
-            % x - Signal with dimensions N x 1.
+            % x - Signal
             % Force -  The applied force vector.
             % minFreq - Minimum frequency shown in the FFT.
             % maxFreq - Maximum frequency shown in the FFT.
@@ -494,7 +494,7 @@ classdef MoDAL
             % Required Inputs
             % ---------------------------------------------
             % time - Time vector
-            % signal - Signal with dimensions N x 1
+            % signal - Signal
             % minFreq - Lower limit of the frequency axis for the FFT.
             % maxFreq - Upper limit of the frequency axis for the FFT.
             %
@@ -548,7 +548,7 @@ classdef MoDAL
             % Required Inputs
             % ---------------------------------------------
             % time - Time vector
-            % signal - Signal with dimensions
+            % signal - Signal
             % minFreq - Minimum frequency computed in the WT.
             % maxFreq - Maximum frequency computed in the WT.
             %
@@ -625,7 +625,7 @@ classdef MoDAL
             % Required Inputs
             % ---------------------------------------------
             % time - Time vector
-            % signal - Signal with dimensions N x 1
+            % signal - Signal
             % minFreq - Minimum frequency computed in the WT.
             % maxFreq - Maximum frequency computed in the WT.
             %

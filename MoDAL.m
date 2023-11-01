@@ -917,6 +917,99 @@ classdef MoDAL
             S4.Position(2) = 0.12464;
         end
 
+        function PlotTSFT_Compare(time1,signal1,time2,signal2,minFreq,maxFreq,options)
+            % Plots the time series, wavelet transform, and FFT/FRF of two signals.
+            %
+            % Inputs
+            % ---------------------------------------------
+            % time1 = time vector for first time series
+            % signal1 = first time series
+            % time2 = time vector for second time series
+            % signal2 = second time series
+            % minFreq - Minimum frequency computed in the WT.
+            % maxFreq - Maximum frequency computed in the WT.
+            %
+            % Options
+            % -------
+            % numFreq - The number of frequency points used in the WT
+            %           (default value = 100).
+            % motherWaveletFreq - Frequency of the mother wavelet used in
+            %           the WT (default value = 2).
+            % label = label for the plots
+            %    'Disp' for displacement data
+            %    'DispND' for non-dimensional displacement
+            %    'Vel' for velocity data
+            %    'Acc' for acceleration data
+            %    'Force' for force data
+            %    'Modal' for modal displacement data
+            %    'Tension' for tension data
+            % timeStart - Sets the minimum xlimit for time plots to this
+            %             value.
+            % timeEnd - Sets the maximum xlimit for time plots to this
+            %           value.
+            % fontSize - Sets the font size to this value.
+            % mirrori - Mirroring applied to the beginning of the signal.
+            %           Even mirroring is the default option. Input should
+            %           be a string with either 'e', 'o', or 'none'.
+            % mirrorf - Mirroring applied to the end of the signal. Even
+            %           mirroring is the default option. Input should
+            %           be a string with either 'e', 'o', or 'none'.
+            % colorMap - A colormap vector used for coloring the WT
+            %            spectrum. Default option is flipud(gray).
+            % legends - 2x1 cell containing two strings that describe
+            %           signal 1 and signal 2, respectively.
+            % wtPower - Raises the WT spectrum to this power. Default
+            %           option is 1.
+            % title - Adds title to the time series plot. Default is no
+            %         title.
+            arguments
+                time1 (:,1) double
+                signal1 (:,1) double
+                time2 (:,1) double
+                signal2 (:,1) double
+                minFreq double
+                maxFreq double
+                options.label string = '';
+                options.timeStart double = min(time1(1),time2(1));
+                options.timeEnd double = max(time1(end),time2(end));
+                options.fontSize double = 12;
+                options.force double = [];
+                options.legends cell = {'Signal 1','Signal 2'};
+                options.legendsLoc string = 'northeast';
+                options.title string = '';
+            end
+            if size(options.force,1) < size(options.force,2)
+                options.force = options.force';
+            end
+            if size(options.force,2) > 1
+                F1 = options.force(:,1);
+                F2 = options.force(:,2);
+            else
+                F1 = options.force;
+                F2 = options.force;
+            end
+
+            figure
+            subplot(2,1,1)
+            MoDAL.TSPlot(time1,signal1,color='k',fontSize=options.fontSize, ...
+                label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd)
+            hold on
+            MoDAL.TSPlot(time2,signal2,color='c',fontSize=options.fontSize, ...
+                label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd)
+            legend(options.legends,'Location',options.legendsLoc,'orientation','horizontal')
+            title(options.title)
+
+            subplot(2,1,2);
+            MoDAL.FTPlot(time1,signal1,minFreq,maxFreq,force=F1, ...
+                label=options.label,fontSize=options.fontSize)
+            hold on
+            MoDAL.FTPlot(time2,signal2,minFreq,maxFreq,force=F2,color='c', ...
+                label=options.label,fontSize=options.fontSize)
+            legend(options.legends,'Location',options.legendsLoc,'orientation','horizontal')
+            drawnow;
+        end
+
+
         % Plot FE Models
         function PlotMesh(coordinates,nodes,options)
             %--------------------------------------------------------------------------

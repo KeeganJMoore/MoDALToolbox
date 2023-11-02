@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.0.15";
+        Version = "1.0.16";
     end
 
     methods(Static)
@@ -1883,8 +1883,8 @@ classdef MoDAL
             L = length(time);
             if length(options.force) == L
                 Fx = fft(signal);
-                FF = fft(opitons.force);
-                FFx = abs(Fx(1:length(freq))./FF(1:length(f2)));
+                FF = fft(options.force);
+                FFx = abs(Fx(1:length(freq))./FF(1:length(freq)));
                 semilogy(freq,FFx,options.color)
                 MoDAL.YLabel(options.label,1)
             else

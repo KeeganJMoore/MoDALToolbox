@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.0.14";
+        Version = "1.0.15";
     end
 
     methods(Static)
@@ -1882,7 +1882,7 @@ classdef MoDAL
             freq = 0:1/time(end):1/(2*dt);
             L = length(time);
             if length(options.force) == L
-                Fx = fft(signa2);
+                Fx = fft(signal);
                 FF = fft(opitons.force);
                 FFx = abs(Fx(1:length(freq))./FF(1:length(f2)));
                 semilogy(freq,FFx,options.color)

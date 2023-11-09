@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.0.17";
+        Version = "1.1.0";
     end
 
     methods(Static)
@@ -698,10 +698,129 @@ classdef MoDAL
                 label=options.label,fontSize=options.fontSize)
         end
 
+        function PlotTSWTMWT(time,signal,minFreq,maxFreq,options)
+            % Plots the time series, wavelet transform, and FFT or FRF of the signal x.
+            %
+            % Required Inputs
+            % ---------------------------------------------
+            % time - Time vector
+            % signal - Signal
+            % minFreq - Minimum frequency computed in the WT.
+            % maxFreq - Maximum frequency computed in the WT.
+            %
+            % Optional Inputs (Uses Name-value format)
+            % ---------------------------------------------
+            % numFreq - The number of frequency points used in the WT
+            %           (default value = 100).
+            % motherWaveletFreq - Frequency of the mother wavelet used in
+            %           the WT (default value = 2).
+            % label = label for the plots
+            %    'Disp' for displacement data
+            %    'Vel' for velocity data
+            %    'Acc' for acceleration data
+            %    'Force' for force data
+            %    'Modal' for modal displacement data
+            % timeStart - Sets the minimum xlimit for time plots to this
+            %             value.
+            % timeEnd - Sets the maximum xlimit for time plots to this
+            %           value.
+            % fontSize - Sets the font size to this value.
+            % mirrori - Mirroring applied to the beginning of the signal.
+            %           Even mirroring is the default option. Input should
+            %           be a string with either 'e', 'o', or 'none'.
+            % mirrorf - Mirroring applied to the end of the signal. Even
+            %           mirroring is the default option. Input should
+            %           be a string with either 'e', 'o', or 'none'.
+            % colorMap - A colormap vector used for coloring the WT
+            %            spectrum. Default option is flipud(gray).
+            % wtPower - Raises the WT spectrum to this power. Default
+            %           option is 1.
+            % title - Adds title to the time series plot. Default is no
+            %         title.
+            arguments
+                time (:,1) double
+                signal (:,1) double
+                minFreq double
+                maxFreq double
+                options.numFreq double = 100;
+                options.motherWaveletFreq double = 2;
+                options.label string = '';
+                options.timeStart double = time(1);
+                options.timeEnd double = time(end);
+                options.fontSize double = 12;
+                options.mirrori string = 'e';
+                options.mirrorf string = 'e';
+                options.colorMap double = flipud(gray);
+                options.wtPower double = 1;
+                options.title string = '';
+            end
+
+            figure
+            % Plot Time Series
+            subplot(3,1,1)
+            MoDAL.TSPlot(time,signal,timeStart=options.timeStart,...
+                timeEnd=options.timeEnd,label=options.label)
+            title(options.title)
+
+            [freq,mods] = MoDAL.WaveletSignal(time,signal,minFreq,maxFreq, ...
+                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            mods = mods/max(mods,[],'All');
+
+            subplot(3,1,2)
+            MoDAL.WTSpectraPlot(time,freq,mods,options)
+
+            subplot(3,1,3)
+            MoDAL.MWTPlot(freq,max(mods),minFreq,maxFreq, ...
+                fontSize=options.fontSize,label=options.label)
+
+
+            % figure
+            % subplot(3,1,1)
+            % MoDAL.TSPlot(time1,signal1,color='k',fontSize=options.fontSize, ...
+            %     label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd)
+            % hold on
+            % MoDAL.TSPlot(time2,signal2,color='c',fontSize=options.fontSize, ...
+            %     label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd)
+            % legend(options.legends,'Location',options.legendsLoc,'orientation','horizontal')
+            % title(options.title)
+            % 
+            % % Compute Wavelet Transforms
+            % [freq1,mods1] = MoDAL.WaveletSignal(time1,signal1,minFreq,maxFreq, ...
+            %     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            % [freq2,mods2] = MoDAL.WaveletSignal(time2,signal2,minFreq,maxFreq, ...
+            %     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            % 
+            % % Normalize Wavelets
+            % maxnorm = max([max(max(mods1)) max(max(mods2))]);
+            % mods1 = mods1/maxnorm;
+            % mods2 = mods2/maxnorm;
+            % 
+            % % Plot Wavelets
+            % subplot(3,2,3)
+            % MoDAL.WTSpectraPlot(time1,freq1,mods1,options)
+            % title(options.legends{1})
+            % 
+            % subplot(3,2,4)
+            % MoDAL.WTSpectraPlot(time2,freq2,mods2,options)
+            % title(options.legends{2})
+            % 
+            % % Plot MWT
+            % S4 = subplot(3,1,3);
+            % MoDAL.MWTPlot(freq1,max(mods1),minFreq,maxFreq, ...
+            %     fontSize=options.fontSize)
+            % hold on
+            % MoDAL.MWTPlot(freq2,max(mods2),minFreq,maxFreq,color='c', ...
+            %     fontSize=options.fontSize)
+            % legend(options.legends,'Location',options.legendsLoc, ...
+            %     'orientation','horizontal')
+            % drawnow;
+            % S4.Position(2) = 0.12464;
+        end
+
         function PlotTSWT_Compare(time1,signal1,time2,signal2,minFreq,maxFreq,options)
             % Plots the time series and wavelet transform of two signals.
             %
-            % Inputs
+            % Required Inputs
             % ---------------------------------------------
             % time1 = time vector for first time series
             % signal1 = first time series
@@ -710,8 +829,8 @@ classdef MoDAL
             % minFreq - Minimum frequency computed in the WT.
             % maxFreq - Maximum frequency computed in the WT.
             %
-            % Options
-            % -------
+            % Optional Inputs (Uses Name-value format)
+            % ---------------------------------------------
             % numFreq - The number of frequency points used in the WT
             %           (default value = 100).
             % motherWaveletFreq - Frequency of the mother wavelet used in
@@ -801,7 +920,7 @@ classdef MoDAL
         function PlotTSWTFT_Compare(time1,signal1,time2,signal2,minFreq,maxFreq,options)
             % Plots the time series, wavelet transform, and FFT/FRF of two signals.
             %
-            % Inputs
+            % Required Inputs
             % ---------------------------------------------
             % time1 = time vector for first time series
             % signal1 = first time series
@@ -810,12 +929,14 @@ classdef MoDAL
             % minFreq - Minimum frequency computed in the WT.
             % maxFreq - Maximum frequency computed in the WT.
             %
-            % Options
-            % -------
+            % Optional Inputs (Uses Name-value format)
+            % ---------------------------------------------
             % numFreq - The number of frequency points used in the WT
             %           (default value = 100).
             % motherWaveletFreq - Frequency of the mother wavelet used in
             %           the WT (default value = 2).
+            % force – Force signal used to compute FRFs. Defaul is an empty
+            %         vector.
             % label = label for the plots
             %    'Disp' for displacement data
             %    'DispND' for non-dimensional displacement
@@ -916,6 +1037,117 @@ classdef MoDAL
             drawnow;
             S4.Position(2) = 0.12464;
         end
+
+        function PlotTSWTMWT_Compare(time1,signal1,time2,signal2,minFreq,maxFreq,options)
+            % Plots the time series, wavelet transform, and MWT of two signals.
+            %
+            % Required Inputs
+            % ---------------------------------------------
+            % time1 = time vector for first time series
+            % signal1 = first time series
+            % time2 = time vector for second time series
+            % signal2 = second time series
+            % minFreq - Minimum frequency computed in the WT.
+            % maxFreq - Maximum frequency computed in the WT.
+            %
+            % Optional Inputs (Uses Name-value format)
+            % ---------------------------------------------
+            % numFreq - The number of frequency points used in the WT
+            %           (default value = 100).
+            % motherWaveletFreq - Frequency of the mother wavelet used in
+            %           the WT (default value = 2).
+            % label = label for the plots
+            %    'Disp' for displacement data
+            %    'DispND' for non-dimensional displacement
+            %    'Vel' for velocity data
+            %    'Acc' for acceleration data
+            %    'Force' for force data
+            %    'Modal' for modal displacement data
+            %    'Tension' for tension data
+            % timeStart - Sets the minimum xlimit for time plots to this
+            %             value.
+            % timeEnd - Sets the maximum xlimit for time plots to this
+            %           value.
+            % fontSize - Sets the font size to this value.
+            % mirrori - Mirroring applied to the beginning of the signal.
+            %           Even mirroring is the default option. Input should
+            %           be a string with either 'e', 'o', or 'none'.
+            % mirrorf - Mirroring applied to the end of the signal. Even
+            %           mirroring is the default option. Input should
+            %           be a string with either 'e', 'o', or 'none'.
+            % colorMap - A colormap vector used for coloring the WT
+            %            spectrum. Default option is flipud(gray).
+            % legends - 2x1 cell containing two strings that describe
+            %           signal 1 and signal 2, respectively.
+            % wtPower - Raises the WT spectrum to this power. Default
+            %           option is 1.
+            % title - Adds title to the time series plot. Default is no
+            %         title.
+            arguments
+                time1 (:,1) double
+                signal1 (:,1) double
+                time2 (:,1) double
+                signal2 (:,1) double
+                minFreq double
+                maxFreq double
+                options.numFreq double = 100;
+                options.motherWaveletFreq double = 2;
+                options.label string = '';
+                options.timeStart double = min(time1(1),time2(1));
+                options.timeEnd double = max(time1(end),time2(end));
+                options.fontSize double = 12;
+                options.mirrori string = 'e';
+                options.mirrorf string = 'e';
+                options.colorMap double = flipud(gray);
+                options.legends cell = {'Signal 1','Signal 2'};
+                options.legendsLoc string = 'northeast';
+                options.wtPower double = 1;
+                options.title string = '';
+            end
+
+            figure
+            subplot(3,1,1)
+            MoDAL.TSPlot(time1,signal1,color='k',fontSize=options.fontSize, ...
+                label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd)
+            hold on
+            MoDAL.TSPlot(time2,signal2,color='c',fontSize=options.fontSize, ...
+                label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd)
+            legend(options.legends,'Location',options.legendsLoc,'orientation','horizontal')
+            title(options.title)
+
+            % Compute Wavelet Transforms
+            [freq1,mods1] = MoDAL.WaveletSignal(time1,signal1,minFreq,maxFreq, ...
+                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            [freq2,mods2] = MoDAL.WaveletSignal(time2,signal2,minFreq,maxFreq, ...
+                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+
+            % Normalize Wavelets
+            maxnorm = max([max(max(mods1)) max(max(mods2))]);
+            mods1 = mods1/maxnorm;
+            mods2 = mods2/maxnorm;
+
+            % Plot Wavelets
+            subplot(3,2,3)
+            MoDAL.WTSpectraPlot(time1,freq1,mods1,options)
+            title(options.legends{1})
+
+            subplot(3,2,4)
+            MoDAL.WTSpectraPlot(time2,freq2,mods2,options)
+            title(options.legends{2})
+
+            % Plot MWT
+            S4 = subplot(3,1,3);
+            MoDAL.MWTPlot(freq1,max(mods1),minFreq,maxFreq, ...
+                fontSize=options.fontSize,label=options.label)
+            hold on
+            MoDAL.MWTPlot(freq2,max(mods2),minFreq,maxFreq,color='c', ...
+                fontSize=options.fontSize,label=options.label)
+            legend(options.legends,'Location',options.legendsLoc, ...
+                'orientation','horizontal')
+            drawnow;
+            S4.Position(2) = 0.12464;
+        end
+
 
         function PlotTSFT_Compare(time1,signal1,time2,signal2,minFreq,maxFreq,options)
             % Plots the time series, wavelet transform, and FFT/FRF of two signals.
@@ -1897,6 +2129,23 @@ classdef MoDAL
             end
             xlim([minFreq maxFreq])
             MoDAL.FreqLabel(options.label)
+            set(gca,'FontSize',options.fontSize)
+        end
+
+        function MWTPlot(freq,maxmods,minFreq,maxFreq,options)
+            arguments
+                freq double
+                maxmods double
+                minFreq double
+                maxFreq double
+                options.label string = '';
+                options.color string = 'k';
+                options.fontSize double = 12;
+            end
+            plot(freq,maxmods,options.color)
+            xlim([minFreq maxFreq])
+            MoDAL.FreqLabel(options.label)
+            ylabel('Norm. Ampl. [\cdot]')
             set(gca,'FontSize',options.fontSize)
         end
 

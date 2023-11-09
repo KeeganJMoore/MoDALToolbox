@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.1.2";
+        Version = "1.1.3";
     end
 
     methods(Static)
@@ -2382,34 +2382,34 @@ classdef MoDAL
             catch
                 error(message('stats:normpdf:InputSizeMismatch'));
             end
+        end
 
+        function [x_mirror, t_mirror] = MirrorImgSigOIni(t, x)
+            % Generate the mirror image signal by an odd symmetry about t=t0
+            L = length(t); xtmp = x - x(1);
+            t_mirror = [-(t(L:-1:2)-t(1))+t(1)];
+            x_mirror = [-xtmp(L:-1:2)+x(1)];
+        end
 
-            function [x_mirror, t_mirror] = MirrorImgSigOIni(t, x)
-                % Generate the mirror image signal by an odd symmetry about t=t0
-                L = length(t); xtmp = x - x(1);
-                t_mirror = [-(t(L:-1:2)-t(1))+t(1)];
-                x_mirror = [-xtmp(L:-1:2)+x(1)];
-            end
+        function [x_mirror, t_mirror] = MirrorImgSigEIni(t, x)
+            % Generate the mirror image signal by an even symmetry about t=t0
+            L = length(t); xtmp = x - x(1);
+            t_mirror = [-(t(L:-1:2)-t(1))+t(1)];
+            x_mirror = [xtmp(L:-1:2)+x(1)];
+        end
 
-            function [x_mirror, t_mirror] = MirrorImgSigEIni(t, x)
-                % Generate the mirror image signal by an even symmetry about t=t0
-                L = length(t); xtmp = x - x(1);
-                t_mirror = [-(t(L:-1:2)-t(1))+t(1)];
-                x_mirror = [xtmp(L:-1:2)+x(1)];
-            end
+        function [x_mirror, t_mirror] = MirrorImgSigOFin(t, x)
+            % Generate the mirror image signal by an odd symmetry about t=tf
+            dt = t(2)-t(1); L = length(t); xtmp = x - x(end);
+            t_mirror = [t(end)+dt*[1:L-1]'];
+            x_mirror = [-xtmp(end-1:-1:end-L+1)+x(end)];
+        end
 
-            function [x_mirror, t_mirror] = MirrorImgSigOFin(t, x)
-                % Generate the mirror image signal by an odd symmetry about t=tf
-                dt = t(2)-t(1); L = length(t); xtmp = x - x(end);
-                t_mirror = [t(end)+dt*[1:L-1]'];
-                x_mirror = [-xtmp(end-1:-1:end-L+1)+x(end)];
-            end
-
-            function [x_mirror, t_mirror] = MirrorImgSigEFin(t, x)
-                % Generate the mirror image signal by an even symmetry about t=tf
-                dt = t(2)-t(1); L = length(t); xtmp = x - x(end);
-                t_mirror = [t(end)+dt*[1:L-1]'];
-                x_mirror = [xtmp(end-1:-1:end-L+1)+x(end)];
-            end
+        function [x_mirror, t_mirror] = MirrorImgSigEFin(t, x)
+            % Generate the mirror image signal by an even symmetry about t=tf
+            dt = t(2)-t(1); L = length(t); xtmp = x - x(end);
+            t_mirror = [t(end)+dt*[1:L-1]'];
+            x_mirror = [xtmp(end-1:-1:end-L+1)+x(end)];
         end
     end
+end

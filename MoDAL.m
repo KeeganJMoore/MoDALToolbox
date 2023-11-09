@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.0.16";
+        Version = "1.0.17";
     end
 
     methods(Static)
@@ -1322,27 +1322,28 @@ classdef MoDAL
         end
 
 
-        % function IMF = WBEMD(time,signal,Freq,MaskSig,Mirror)
         function IMF = WBEMD(time,signal,minFreq,maxFreq,charFreq,options)
-            % WBEMD  Extract monochromatic IMFs from provided time-series.
+             % WBEMD: Extract monochromatic IMFs from provided time-series.
             %
             % Required Inputs
             % ---------------------------------------------
             % time - Time vector
-            % signal - Signal column vector or matrix each column represents one signal.
+            % signal - Column vector or matrix where each column represents 
+            %          one signal.
             % minFreq - Minimum frequency computed in the wavelet transform.
             % maxFreq - Maximum frequency computed in the wavelet transform.
-            % charFreq – A cell that represents the characteristic frequencies of
-            %            each signal that is being analyzed. Thus, if x is a p by 2 matrix
-            %            (two signals are being analyzed) then Freq.FChar would be defined as
+            % charFreq – A cell that represents the characteristic frequencies
+            %            of each signal that is being analyzed. Thus, if x is 
+            %            a p by 2 matrix (two signals are being analyzed) 
+            %            then Freq.FChar would be defined as
             %
             %            charFreq{1} = [Fn;Fn-1;...;F2;F1];
             %            charFreq{2} = [Gm;Gm-1;...;G2;G1];
             %
-            %            where Fn,...,F1 and Gm,...,G1 are the characteristic time scales of the
-            %            first and second time signals, respectively, and m and n are integers
-            %            and can have different values.
-            %
+            %            where Fn,...,F1 and Gm,...,G1 are the characteristic
+            %            time scales of the first and second time signals, 
+            %            respectively, and m and n are integers and can have
+            %            different values.
             %
             % Optional Inputs (Uses Name-value format)
             % ---------------------------------------------
@@ -1359,55 +1360,17 @@ classdef MoDAL
             %           is 1, then a sine is used. If the value is 2, then
             %           a cosine is used. The default value is 1.
             %
-            % Mirroring is not fully implemented and will be added in the
-            % future. The list below is work in-progress.
-            %
-            % Mirror is a structure with the entries:
-            %
-            %   Mirror.On - Takes a value of 0 or 1, which indicate whether or not
-            %               mirroring should be used in the decomposition.
-            %
-            %   Mirror.Freq - a cell that indicates which characteristic time
-            %                scales mirroring will be applied to. For example,
-            %
-            %                Mirror.FMirror{1} = [Fn;F2;F1];
-            %                Mirror.FMirror{2} = [Gm;Gm-1;G3;G1];
-            %
-            %                would result in mirroring being applied to the characteristic time
-            %                scales Fn, F2, and F1 for the first signal and Gm, Gm-1, G3, and G1 for
-            %                the second signal.
-            %
-            %   Mirror.Chop1 - A cell that indicates what percentage of the signal
-            %                  should be mirrored at the beginning of the signal for a particular
-            %                  characteristic frequency. The number of entries must equal the number
-            %                  of entries in Mirror.FMirror and the recommended value is 0.2. For
-            %                  example,
-            %
-            %                  Mirror.Chop1{1} = [0.2;0.2;0.2];
-            %                  Mirror.Chop1{2} = [0.2;0.2;0.2;0.2];
-            %
-            %                  where the first and second lines correspond to the first and second
-            %                  signals.
-            %
-            %   Mirror.Chop2 - The same as Mirror.Chop1, except that it applies to the
-            %                  end of the signal instead of the beginning.
-            %
-            %
-            % The default setting is for mirroring to be turned off and not applied to
-            % the signal.
-            %
-            %
             % Outputs
-            % IMF - A cell structure with the format: IMF{n}.IMF where is n represents
-            %       the nth signal decomposed by WBEMD and .IMF is a column-matrix containing the
-            %       IMFs. For example,
+            % ---------------------------------------------
+            % IMF - A cell with the format: IMF{n}(:,m) which 
+            %       represents the mth IMF extracted from the nth signal 
+            %       decomposed by WBEMD. For example,
             %
-            %       IMF{1} is the matrix containing the IMFs for the first signal and
-            %       is a p by n (p being the number of sampled points and n being the
-            %       number of IMFs).
+            %       IMF{1}(:,1) is the 1st IMF extracted from the first
+            %       signal decomposed by WBEMD.
             %
-            %       IMF{2} is the matrix containing the IMFs for the second signal and
-            %       is of size p by m.
+            %       IMF{4}(:,3) is the 3rd IMF extracted from for the 
+            %       4th signal decomposed by WBEMD.
             %
             % Example
             % ---------------------------------------------
@@ -1455,9 +1418,48 @@ classdef MoDAL
             % Analysis," Nonlinear Dynamics, 93(3):1559-1577, 2018.
             % https://doi.org/10.1007/s11071-018-4276-0
 
+
+
+            % Mirroring is not fully implemented and will be added in the
+            % future. The list below is work in-progress.
+            %
+            % Mirror is a structure with the entries:
+            %
+            %   Mirror.On - Takes a value of 0 or 1, which indicate whether or not
+            %               mirroring should be used in the decomposition.
+            %
+            %   Mirror.Freq - a cell that indicates which characteristic time
+            %                scales mirroring will be applied to. For example,
+            %
+            %                Mirror.FMirror{1} = [Fn;F2;F1];
+            %                Mirror.FMirror{2} = [Gm;Gm-1;G3;G1];
+            %
+            %                would result in mirroring being applied to the characteristic time
+            %                scales Fn, F2, and F1 for the first signal and Gm, Gm-1, G3, and G1 for
+            %                the second signal.
+            %
+            %   Mirror.Chop1 - A cell that indicates what percentage of the signal
+            %                  should be mirrored at the beginning of the signal for a particular
+            %                  characteristic frequency. The number of entries must equal the number
+            %                  of entries in Mirror.FMirror and the recommended value is 0.2. For
+            %                  example,
+            %
+            %                  Mirror.Chop1{1} = [0.2;0.2;0.2];
+            %                  Mirror.Chop1{2} = [0.2;0.2;0.2;0.2];
+            %
+            %                  where the first and second lines correspond to the first and second
+            %                  signals.
+            %
+            %   Mirror.Chop2 - The same as Mirror.Chop1, except that it applies to the
+            %                  end of the signal instead of the beginning.
+            %
+            %
+            % The default setting is for mirroring to be turned off and not applied to
+            % the signal.
+
             arguments
                 time double
-                signal double
+                signal double 
                 minFreq double
                 maxFreq double
                 charFreq cell
@@ -1470,7 +1472,7 @@ classdef MoDAL
                 options.mirrorChop2 cell = {};
                 options.Mirror struct = [];
             end
-            if ~isfield(options.Mirror,'On'); options.Mirror.On = 0; end
+            if ~isfield(options.Mirror,'On'); options.Mirror(1).On = 0; end
 
             % Wavelet Parameters
             numFreq = options.numFreq;

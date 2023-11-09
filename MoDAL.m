@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.1.1";
+        Version = "1.1.2";
     end
 
     methods(Static)
@@ -9,7 +9,7 @@ classdef MoDAL
             fprintf('\nThis class includes a collection of plotting codes often used by MoDAL members.\n\n')
             fprintf('Enter "MoDAL.Install" into the command window to install this class.\n\n')
             fprintf('For help contact Professor Moore at kmoore@unl.edu.\n')
-            
+
             methods(MoDAL)
         end
 
@@ -104,7 +104,7 @@ classdef MoDAL
             Tb = 3;
             force = sin(pi/T*(time-Tb)).*(heaviside(time-Tb)-heaviside(time-T-Tb));
             force = awgn(force,58);
-            
+
             % Plot force
             MoDAL.PlotForce(time,force)
 
@@ -127,7 +127,7 @@ classdef MoDAL
             % Required Inputs
             % ---------------------------------------------
             % time - Time vector
-            % force - Signal 
+            % force - Signal
             %
             % Optional Inputs (Uses Name-value format)
             % ---------------------------------------------
@@ -297,7 +297,7 @@ classdef MoDAL
             % Inputs
             % ------
             % time - Time vector
-            % signal - Signal 
+            % signal - Signal
             % minFreq - Minimum frequency computed in the WT.
             % maxFreq - Maximum frequency computed in the WT.
             %
@@ -783,27 +783,27 @@ classdef MoDAL
             %     label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd)
             % legend(options.legends,'Location',options.legendsLoc,'orientation','horizontal')
             % title(options.title)
-            % 
+            %
             % % Compute Wavelet Transforms
             % [freq1,mods1] = MoDAL.WaveletSignal(time1,signal1,minFreq,maxFreq, ...
             %     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
             % [freq2,mods2] = MoDAL.WaveletSignal(time2,signal2,minFreq,maxFreq, ...
             %     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
-            % 
+            %
             % % Normalize Wavelets
             % maxnorm = max([max(max(mods1)) max(max(mods2))]);
             % mods1 = mods1/maxnorm;
             % mods2 = mods2/maxnorm;
-            % 
+            %
             % % Plot Wavelets
             % subplot(3,2,3)
             % MoDAL.WTSpectraPlot(time1,freq1,mods1,options)
             % title(options.legends{1})
-            % 
+            %
             % subplot(3,2,4)
             % MoDAL.WTSpectraPlot(time2,freq2,mods2,options)
             % title(options.legends{2})
-            % 
+            %
             % % Plot MWT
             % S4 = subplot(3,1,3);
             % MoDAL.MWTPlot(freq1,max(mods1),minFreq,maxFreq, ...
@@ -1262,10 +1262,10 @@ classdef MoDAL
             % showFill - include fill in the elements
             %            0 (default) - do not include
             %            1 - include
-            % coordzero - 
+            % coordzero -
             %
             %
-            % Original version coded by:    
+            % Original version coded by:
             %    Siva Srinivas Kolukula, PhD
             %    Indian Tsunami Early Warning Centre (ITEWC)
             %    Advisory Services and Satellite Oceanography Group (ASG)
@@ -1287,12 +1287,12 @@ classdef MoDAL
                 options.showFill double = 0;
                 options.showElementNumber double = 0;
             end
-            
+
             dimension = size(coordinates,2);  % Dimension of the mesh
             nel = length(nodes) ;                  % number of elements
             nnode = length(coordinates) ;          % total number of nodes in system
             nnel = size(nodes,2);                % number of nodes per element
-            
+
             % Initialization of the required matrices
             X = zeros(nnel,nel);
             Y = X;
@@ -1350,7 +1350,7 @@ classdef MoDAL
                         repmat({'FaceColor'},1,nel),repmat({'r'},1,nel));
 
                     set(gca,'XTick',[]) ; set(gca,'YTick',[]); set(gca,'ZTick',[]) ;
-                    
+
                     % display Node numbers and Element numbers
                     if options.showElementNumber ~= 0
                         for i = 1:nel
@@ -1382,7 +1382,7 @@ classdef MoDAL
                 end
             end
             view(3)
-  
+
         end
 
         %%%%%%% Decomposition Routines %%%%%%%%
@@ -1555,25 +1555,25 @@ classdef MoDAL
 
 
         function IMF = WBEMD(time,signal,minFreq,maxFreq,charFreq,options)
-             % WBEMD: Extract monochromatic IMFs from provided time-series.
+            % WBEMD: Extract monochromatic IMFs from provided time-series.
             %
             % Required Inputs
             % ---------------------------------------------
             % time - Time vector
-            % signal - Column vector or matrix where each column represents 
+            % signal - Column vector or matrix where each column represents
             %          one signal.
             % minFreq - Minimum frequency computed in the wavelet transform.
             % maxFreq - Maximum frequency computed in the wavelet transform.
             % charFreq – A cell that represents the characteristic frequencies
-            %            of each signal that is being analyzed. Thus, if x is 
-            %            a p by 2 matrix (two signals are being analyzed) 
+            %            of each signal that is being analyzed. Thus, if x is
+            %            a p by 2 matrix (two signals are being analyzed)
             %            then Freq.FChar would be defined as
             %
             %            charFreq{1} = [Fn;Fn-1;...;F2;F1];
             %            charFreq{2} = [Gm;Gm-1;...;G2;G1];
             %
             %            where Fn,...,F1 and Gm,...,G1 are the characteristic
-            %            time scales of the first and second time signals, 
+            %            time scales of the first and second time signals,
             %            respectively, and m and n are integers and can have
             %            different values.
             %
@@ -1594,14 +1594,14 @@ classdef MoDAL
             %
             % Outputs
             % ---------------------------------------------
-            % IMF - A cell with the format: IMF{n}(:,m) which 
-            %       represents the mth IMF extracted from the nth signal 
+            % IMF - A cell with the format: IMF{n}(:,m) which
+            %       represents the mth IMF extracted from the nth signal
             %       decomposed by WBEMD. For example,
             %
             %       IMF{1}(:,1) is the 1st IMF extracted from the first
             %       signal decomposed by WBEMD.
             %
-            %       IMF{4}(:,3) is the 3rd IMF extracted from for the 
+            %       IMF{4}(:,3) is the 3rd IMF extracted from for the
             %       4th signal decomposed by WBEMD.
             %
             % Example
@@ -1691,7 +1691,7 @@ classdef MoDAL
 
             arguments
                 time double
-                signal double 
+                signal double
                 minFreq double
                 maxFreq double
                 charFreq cell
@@ -1832,7 +1832,7 @@ classdef MoDAL
                         IMF_Proc(1,1,:,:) = (imf1+imf2)/2;
                         NumIMFs = NumIMFs+1;
                     else
-                        
+
                         NumMaskSig = NumMaskSig+1;
                         Opts = optimoptions('patternsearch','TolMesh',1e-8);
                         if size(fg,2) == 1
@@ -1903,12 +1903,12 @@ classdef MoDAL
                         Omega = fg(o+1)+0.25*(fg(o)-fg(o+1));
                         gamma = 0.85;
                         delta = 0.25;
-                        
+
 
                         [xopt,~,~,~] = patternsearch(@(x)MoDAL.objfun(x,ti,X_emd,modx_normer,minFreq, ...
                             maxFreq,numFreq,motherWaveletFreq,mod_criteria1,mod_criteria2,checksval, ...
                             fg,gamma,delta,Omega),x0,[],[],[],[],lb,ub,[],Opts);
-                        
+
                         disp ' '
                         z = xopt;
                         if options.maskSig == 1
@@ -2240,7 +2240,7 @@ classdef MoDAL
             chp1 = 0.2;
             chp2 = 0.2;
 
-           [x_mirror,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd] = MoDAL.MirrorSignal(time,signal,mirrori,mirrorf,chp1,chp2);
+            [x_mirror,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd] = MoDAL.MirrorSignal(time,signal,mirrori,mirrorf,chp1,chp2);
 
             [fr,mods] = MoDAL.WaveletTransform(time,x_mirror,minFreq,maxFreq, ...
                 'motherWaveletFreq',motherWaveletFreq,'numFreq',numFreq);
@@ -2345,32 +2345,71 @@ classdef MoDAL
 
         end
 
-        function [x_mirror, t_mirror] = MirrorImgSigOIni(t, x)
-            % Generate the mirror image signal by an odd symmetry about t=t0
-            L = length(t); xtmp = x - x(1);
-            t_mirror = [-(t(L:-1:2)-t(1))+t(1)];
-            x_mirror = [-xtmp(L:-1:2)+x(1)];
-        end
+        function y = normpdf(x,mu,sigma)
+            %NORMPDF Normal probability density function (pdf).
+            %   Y = NORMPDF(X,MU,SIGMA) returns the pdf of the normal distribution with
+            %   mean MU and standard deviation SIGMA, evaluated at the values in X.
+            %   The size of Y is the common size of the input arguments.  A scalar
+            %   input functions as a constant matrix of the same size as the other
+            %   inputs.
+            %
+            %   Default values for MU and SIGMA are 0 and 1 respectively.
+            %
+            %   See also NORMCDF, NORMFIT, NORMINV, NORMLIKE, NORMRND, NORMSTAT.
+            %
+            %   References:
+            %      [1] Evans, M., Hastings, N., and Peacock, B. (1993) Statistical
+            %          Distributions, 2nd ed., Wiley, 170pp.
+            %
+            %   Copyright 1993-2004 The MathWorks, Inc.
 
-        function [x_mirror, t_mirror] = MirrorImgSigEIni(t, x)
-            % Generate the mirror image signal by an even symmetry about t=t0
-            L = length(t); xtmp = x - x(1);
-            t_mirror = [-(t(L:-1:2)-t(1))+t(1)];
-            x_mirror = [xtmp(L:-1:2)+x(1)];
-        end
 
-        function [x_mirror, t_mirror] = MirrorImgSigOFin(t, x)
-            % Generate the mirror image signal by an odd symmetry about t=tf
-            dt = t(2)-t(1); L = length(t); xtmp = x - x(end);
-            t_mirror = [t(end)+dt*[1:L-1]'];
-            x_mirror = [-xtmp(end-1:-1:end-L+1)+x(end)];
-        end
+            if nargin<1
+                error(message('stats:normpdf:TooFewInputs'));
+            end
+            if nargin < 2
+                mu = 0;
+            end
+            if nargin < 3
+                sigma = 1;
+            end
 
-        function [x_mirror, t_mirror] = MirrorImgSigEFin(t, x)
-            % Generate the mirror image signal by an even symmetry about t=tf
-            dt = t(2)-t(1); L = length(t); xtmp = x - x(end);
-            t_mirror = [t(end)+dt*[1:L-1]'];
-            x_mirror = [xtmp(end-1:-1:end-L+1)+x(end)];
+            % Return NaN for out of range parameters.
+            sigma(sigma <= 0) = NaN;
+
+            try
+                y = exp(-0.5 * ((x - mu)./sigma).^2) ./ (sqrt(2*pi) .* sigma);
+            catch
+                error(message('stats:normpdf:InputSizeMismatch'));
+            end
+
+
+            function [x_mirror, t_mirror] = MirrorImgSigOIni(t, x)
+                % Generate the mirror image signal by an odd symmetry about t=t0
+                L = length(t); xtmp = x - x(1);
+                t_mirror = [-(t(L:-1:2)-t(1))+t(1)];
+                x_mirror = [-xtmp(L:-1:2)+x(1)];
+            end
+
+            function [x_mirror, t_mirror] = MirrorImgSigEIni(t, x)
+                % Generate the mirror image signal by an even symmetry about t=t0
+                L = length(t); xtmp = x - x(1);
+                t_mirror = [-(t(L:-1:2)-t(1))+t(1)];
+                x_mirror = [xtmp(L:-1:2)+x(1)];
+            end
+
+            function [x_mirror, t_mirror] = MirrorImgSigOFin(t, x)
+                % Generate the mirror image signal by an odd symmetry about t=tf
+                dt = t(2)-t(1); L = length(t); xtmp = x - x(end);
+                t_mirror = [t(end)+dt*[1:L-1]'];
+                x_mirror = [-xtmp(end-1:-1:end-L+1)+x(end)];
+            end
+
+            function [x_mirror, t_mirror] = MirrorImgSigEFin(t, x)
+                % Generate the mirror image signal by an even symmetry about t=tf
+                dt = t(2)-t(1); L = length(t); xtmp = x - x(end);
+                t_mirror = [t(end)+dt*[1:L-1]'];
+                x_mirror = [xtmp(end-1:-1:end-L+1)+x(end)];
+            end
         end
     end
-end

@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.1.5";
+        Version = "1.1.6";
     end
 
     methods(Static)
@@ -685,7 +685,8 @@ classdef MoDAL
             % Plot Time Series
             subplot(3,1,1)
             MoDAL.TSPlot(time,signal,timeStart=options.timeStart,...
-                timeEnd=options.timeEnd,label=options.label)
+                timeEnd=options.timeEnd,label=options.label, ...
+                fontSize=options.fontSize)
             title(options.title)
 
             [freq,mods] = MoDAL.WaveletSignal(time,signal,minFreq,maxFreq, ...

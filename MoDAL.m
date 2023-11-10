@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.1.3";
+        Version = "1.1.4";
     end
 
     methods(Static)
@@ -1780,9 +1780,9 @@ classdef MoDAL
                         fprintf('\nComputing IMF %g of of Time Series %g.\n',o,b)
                         F1 = fg(o);
 
-                        if MaskSig == 1
+                        if options.maskSig == 1
                             masksig = max(X_emd)*(sin(F1*ti));
-                        elseif MaskSig == 2
+                        elseif options.maskSig == 2
                             masksig = max(X_emd)*(cos(F1*ti));
                         end
 

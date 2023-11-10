@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.1.4";
+        Version = "1.1.5";
     end
 
     methods(Static)
@@ -84,7 +84,6 @@ classdef MoDAL
                 'T = 1;\n', ...
                 'Tb = 3;\n', ...
                 'force = sin(pi/T*(time-Tb)).*(heaviside(time-Tb)-heaviside(time-T-Tb));\n', ...
-                'force = awgn(force,58);\n\n', ...
                 '%% Plot force\n', ...
                 'MoDAL.PlotForce(time,force)\n\n', ...
                 'freqMin = 0;\n', ...
@@ -147,6 +146,7 @@ classdef MoDAL
                 options.nonDim double = 0
                 options.forceUnits char = 'N'
                 options.timeUnits char = "s"
+                options.fontSize = 12;
             end
             if options.nonDim == 1
                 options.forceUnits = '\cdot';
@@ -173,18 +173,20 @@ classdef MoDAL
             end
 
             figure
-            p1 = axes;
             plot(time,force,'k');
             xlabel(['Time [' options.timeUnits ']'])
             ylabel(['Force [' options.forceUnits ']'])
             xlim([time(1) time(end)])
             ylim(1.1*[min(force) max(force)])
+            set(gca,'FontSize',options.fontSize)
+            
             p2 = axes;
             p2.Position = [0.3 0.35 0.55 0.5];
             plot(time,force,'k')
             xlim([options.timeStart options.timeEnd])
             annotation('Arrow','Position',[0.1732,0.2363,0.0786,0.0620]);
             title(sprintf('Max Amplitude = %g %s',round(max(abs(force))),options.forceUnits))
+            set(gca,'FontSize',options.fontSize)
 
         end
 

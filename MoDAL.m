@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.1.6";
+        Version = "1.1.7";
     end
 
     methods(Static)
@@ -2098,10 +2098,10 @@ classdef MoDAL
                 options.timeEnd double = time(end);
             end
             plot(time,signal,options.color)
-            xlim([options.timeStart options.timeEnd])
             MoDAL.TimeLabel(options.label)
             MoDAL.YLabel(options.label)
             set(gca,'FontSize',options.fontSize)
+            xlim([options.timeStart options.timeEnd])
         end
 
         function FTPlot(time,signal,minFreq,maxFreq,options)
@@ -2150,6 +2150,7 @@ classdef MoDAL
             MoDAL.FreqLabel(options.label)
             ylabel('Norm. Ampl. [\cdot]')
             set(gca,'FontSize',options.fontSize)
+            xlim([options.timeStart options.timeEnd])
         end
 
         function WTSpectraPlot(time,freq,mods,options)

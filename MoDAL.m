@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.1.7";
+        Version = "1.1.8";
     end
 
     methods(Static)
@@ -148,6 +148,8 @@ classdef MoDAL
                 options.timeUnits char = "s"
                 options.fontSize = 12;
             end
+            tStartSpecified = 1;
+            tEndSpecified = 1;
             if options.nonDim == 1
                 options.forceUnits = '\cdot';
                 options.timeUnits = '\cdot';

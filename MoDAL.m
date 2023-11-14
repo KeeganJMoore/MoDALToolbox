@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.1.9";
+        Version = "1.1.10";
     end
 
     methods(Static)
@@ -1858,7 +1858,7 @@ classdef MoDAL
 
                         fprintf('Optimizing IMF %g of Time Series %g.\n ',o,b)
 
-                        [freq,modx] = MoDAL.WaveletTransform(time,signal,minFreq,maxFreq, ...
+                        [freq,modx] = MoDAL.WaveletTransform(time,signal(:,b),minFreq,maxFreq, ...
                             'numFreq',numFreq,'motherWaveletFreq',motherWaveletFreq);
                         modx(isnan(modx))=0;
                         if options.Mirror.On == 1

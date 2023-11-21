@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.1.10";
+        Version = "1.1.11";
     end
 
     methods(Static)
@@ -2036,7 +2036,6 @@ classdef MoDAL
                 options.mirrorf string = 'e';
                 options.chp1 double = 0.2;
                 options.chp2 double = 0.2;
-                options.optimizeCutoff = 0;
             end
             dt = time(2)-time(1);
 
@@ -2050,17 +2049,7 @@ classdef MoDAL
             amp1 = abs(X);
             Fs = 1/dt;
             Fnyq = Fs/2;
-            if options.optimizeCutoff == 1
-                [signalPeaks,peakIndex] = findpeaks(abs(x_mirror));
-                t = 0:dt:(length(x_mirror)-1)*dt;
-                signalAmpEst = interp1(t(peakIndex),signalPeaks,t,'linear','extrap');
-
-                opts = optimoptions("patternsearch","Display","iter");
-
-                FiltOut = patternsearch(@(x) MoDAL.OptimizeCutoff(x,Fnyq, ...
-                    amp1,signalAmpEst),[1 3],[],[],[],[],10/t(end),Fnyq/2,[],opts);
-                options.cutoffFreq = FiltOut(1);
-            end
+           
             Fcs = options.cutoffFreq/Fnyq;
             [b,a] = butter(options.filtOrder,Fcs,'low');
             theta2 = filtfilt(b,a,theta1);

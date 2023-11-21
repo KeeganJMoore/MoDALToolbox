@@ -54,14 +54,14 @@ classdef MoDAL
                 'set(0,''defaultfigurecolor'',[1 1 1])\n' ...
                 'set(0,''defaultaxesfontsize'',12)\n' ...
                 'set(0,''DefaultLineLineWidth'',1);\n' ...
-                'MoDAL.UpdateMoDAL' ...
+                'MoDAL.Update' ...
                 '']);
             fclose(FID);
 
             fprintf('\nMoDAL version %s successfully installed.\n\n',MoDAL.Version)
         end
 
-        function UpdateMoDAL
+        function Update
             URL = 'https://raw.githubusercontent.com/KeeganJMoore/MoDALToolbox/main/MoDAL.m';
             GetRequest = webread(URL);
             R = strfind(GetRequest,'Version');

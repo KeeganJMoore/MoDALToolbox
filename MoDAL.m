@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.1.12";
+        Version = "1.1.13";
     end
 
     methods(Static)
@@ -1291,6 +1291,7 @@ classdef MoDAL
                 options.showNodeNumber double = 0;
                 options.showFill double = 0;
                 options.showElementNumber double = 0;
+                options.edgeColor = 'k';
             end
 
             dimension = size(coordinates,2);  % Dimension of the mesh
@@ -1321,7 +1322,7 @@ classdef MoDAL
                     if options.showFill == 0
                         patch(X,Y,Z,Z,'facecolor','none')
                     else
-                        patch(X,Y,Z,Z2)
+                        patch(X,Y,Z,Z2,'edgecolor',options.edgeColor)
                     end
 
                     % display Node numbers and Element numbers

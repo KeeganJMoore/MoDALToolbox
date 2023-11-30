@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.1.13";
+        Version = "1.1.14";
     end
 
     methods(Static)
@@ -1320,7 +1320,7 @@ classdef MoDAL
                         Z2 = Z;
                     end
                     if options.showFill == 0
-                        patch(X,Y,Z,Z,'facecolor','none')
+                        patch(X,Y,Z,Z,'facecolor','none','edgecolor',options.edgeColor)
                     else
                         patch(X,Y,Z,Z2,'edgecolor',options.edgeColor)
                     end

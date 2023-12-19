@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.2.1";
+        Version = "1.2.2";
     end
 
     methods(Static)
@@ -2319,8 +2319,26 @@ classdef MoDAL
             theta = MoDAL.UnmirrorSignal(theta2,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd);
             omega = MoDAL.UnmirrorSignal(omega2,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd);
         end
-    end
 
+        function [fr,mods] = WaveletSignal(time,signal,minFreq,maxFreq,numFreq,motherWaveletFreq,mirrori,mirrorf)
+            chp1 = 0.2;
+            chp2 = 0.2;
+
+            [x_mirror,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd] = MoDAL.MirrorSignal(time,signal,mirrori,mirrorf,chp1,chp2);
+
+            [fr,mods] = MoDAL.WaveletTransform(time,x_mirror,minFreq,maxFreq, ...
+                'motherWaveletFreq',motherWaveletFreq,'numFreq',numFreq);
+
+            if NoMirrorIni == 0 && NoMirrorEnd == 0
+                mods = mods(L_chp1:end-L_chp2+1,:);
+            elseif NoMirrorIni == 0 && NoMirrorEnd == 1
+                mods = mods(L_chp1:end);
+            elseif NoMirrorIni == 1 && NoMirrorEnd == 0
+                mods = mods(1:end-L_chp2+1);
+            end
+        end
+
+    end
 
     %%%%% Static Private methods
     methods (Static,Access=private)
@@ -2486,25 +2504,6 @@ classdef MoDAL
                 else
                     P = checksval(minIndexes1);
                 end
-            end
-        end
-
-
-        function [fr,mods] = WaveletSignal(time,signal,minFreq,maxFreq,numFreq,motherWaveletFreq,mirrori,mirrorf)
-            chp1 = 0.2;
-            chp2 = 0.2;
-
-            [x_mirror,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd] = MoDAL.MirrorSignal(time,signal,mirrori,mirrorf,chp1,chp2);
-
-            [fr,mods] = MoDAL.WaveletTransform(time,x_mirror,minFreq,maxFreq, ...
-                'motherWaveletFreq',motherWaveletFreq,'numFreq',numFreq);
-
-            if NoMirrorIni == 0 && NoMirrorEnd == 0
-                mods = mods(L_chp1:end-L_chp2+1,:);
-            elseif NoMirrorIni == 0 && NoMirrorEnd == 1
-                mods = mods(L_chp1:end);
-            elseif NoMirrorIni == 1 && NoMirrorEnd == 0
-                mods = mods(1:end-L_chp2+1);
             end
         end
 

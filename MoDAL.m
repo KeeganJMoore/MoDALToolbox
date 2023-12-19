@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.2.0";
+        Version = "1.2.1";
     end
 
     methods(Static)
@@ -1547,20 +1547,26 @@ classdef MoDAL
             end
         end
 
-        function Mode = IWD(time,signal,lowerFreqs,upperFreqs,mirrori,mirrorf)
+        function Mode = IWD(time,signal,lowerFreqs,upperFreqs,options)
             arguments
                 time double
                 signal double
                 lowerFreqs double
                 upperFreqs double
-                mirrori string = 'e';
-                mirrorf string = 'e';
+                options.motherWaveletFreq = 16;
+                options.mirrori string = 'e';
+                options.mirrorf string = 'e';
+                options.chp1 = 0.2;
+                options.chp2 = 0.2;
             end
 
-            [x_mirror,NoMirrorIni,NoMirrorEnd] = MoDAL.MirrorSignal(time,signal,mirrori,mirrorf,0.2,0.2);
+            [x_mirror,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd] = ...
+                MoDAL.MirrorSignal(time,signal,options.mirrori, ...
+                options.mirrorf,options.chp1,options.chp2);
+            
             signal = x_mirror;
-
-            Fo = 16;
+        
+            Fo = options.motherWaveletFreq;
             dt = time(2)-time(1);
             Fs = 1/dt;
 

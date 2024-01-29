@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.2.4";
+        Version = "1.2.5";
     end
 
     methods(Static)
@@ -1924,6 +1924,8 @@ classdef MoDAL
                         ylabel({'Mobility','[(m/s)/N]'})
                     case 'Disp'
                         ylabel({'Receptance','[m/N]'})
+                    case 'Dispmm'
+                        ylabel({'Receptance','[mm/N]'})
                     case 'Tension'
                         ylabel('Tension/Input Force [N/N]')
                     otherwise

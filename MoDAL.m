@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.2.6";
+        Version = "1.2.7";
     end
 
     methods(Static)
@@ -1143,11 +1143,12 @@ classdef MoDAL
             clim([0 1])
 
             S4 = subplot(3,1,3);
-            MoDAL.FTPlot(time1,signal1,minFreq,maxFreq,force=F1, ...
-                label=options.label,fontSize=options.fontSize,color=options.firstColor)
+            MoDAL.FTPlot(time1,signal1,minFreq,maxFreq,force=F1,color=options.firstColor, ...
+                label=options.label,fontSize=options.fontSize, ...
+                linestyle=options.firstLineStyle)
             hold on
             MoDAL.FTPlot(time2,signal2,minFreq,maxFreq,force=F2,color=options.secondColor, ...
-                label=options.label,fontSize=options.fontSize)
+                label=options.label,fontSize=options.fontSize,linestyle=options.secondLineStyle)
             legend(options.legends,'Location',options.legendsLoc,'orientation','horizontal')
             drawnow;
             S4.Position(2) = 0.12464;
@@ -1496,10 +1497,10 @@ classdef MoDAL
 
             subplot(2,1,2);
             MoDAL.FTPlot(time1,signal1,minFreq,maxFreq,force=F1,color=options.firstColor, ...
-                label=options.label,fontSize=options.fontSize)
+                label=options.label,fontSize=options.fontSize,linestyle=options.firstLineStyle)
             hold on
             MoDAL.FTPlot(time2,signal2,minFreq,maxFreq,force=F2,color=options.secondColor, ...
-                label=options.label,fontSize=options.fontSize)
+                label=options.label,fontSize=options.fontSize,linestyle=options.secondLineStyle)
             legend(options.legends,'Location',options.legendsLoc,'orientation','horizontal')
             drawnow;
             if options.hideX; MoDAL.HideX;end

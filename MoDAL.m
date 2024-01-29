@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.2.5";
+        Version = "1.2.6";
     end
 
     methods(Static)
@@ -930,6 +930,8 @@ classdef MoDAL
             % fontSize - Sets the font size to this value.
             % firstColor - Color string for the first signal.
             % secondColor - Color string for the second signal.
+            % firstLineStyle – Line style for the first signal.
+            % secondLineStyle – Line style for the first signal.
             % mirrori - Mirroring applied to the beginning of the signal.
             %           Even mirroring is the default option. Input should
             %           be a string with either 'e', 'o', or 'none'.
@@ -961,6 +963,8 @@ classdef MoDAL
                 options.fontSize double = 12;
                 options.firstColor string = 'k';
                 options.secondColor string = 'r';
+                options.firstLineStyle string = '-';
+                options.secondLineStyle string = '-';
                 options.force double = [];
                 options.mirrori string = 'e';
                 options.mirrorf string = 'e';
@@ -977,11 +981,11 @@ classdef MoDAL
             subplot(3,1,1);
             MoDAL.TSPlot(time1,signal1,color=options.firstColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
-                tsLim=options.tsLim)
+                tsLim=options.tsLim,linestyle=options.firstLineStyle)
             hold on
             MoDAL.TSPlot(time2,signal2,color=options.secondColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
-                tsLim=options.tsLim)
+                tsLim=options.tsLim,linestyle=options.secondLineStyle)
             legend(options.legends,'Location',options.legendsLoc,'orientation','horizontal')
             title(options.title)
 
@@ -1048,6 +1052,8 @@ classdef MoDAL
             % fontSize - Sets the font size to this value.
             % firstColor - Color string for the first signal.
             % secondColor - Color string for the second signal.
+            % firstLineStyle – Line style for the first signal.
+            % secondLineStyle – Line style for the first signal.
             % mirrori - Mirroring applied to the beginning of the signal.
             %           Even mirroring is the default option. Input should
             %           be a string with either 'e', 'o', or 'none'.
@@ -1079,6 +1085,8 @@ classdef MoDAL
                 options.fontSize double = 12;
                 options.firstColor string = 'k';
                 options.secondColor string = 'r';
+                options.firstLineStyle string = '-';
+                options.secondLineStyle string = '-';
                 options.force double = [];
                 options.mirrori string = 'e';
                 options.mirrorf string = 'e';
@@ -1104,11 +1112,11 @@ classdef MoDAL
             subplot(3,1,1)
             MoDAL.TSPlot(time1,signal1,color=options.firstColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
-                tsLim=options.tsLim)
+                tsLim=options.tsLim,linestyle=options.firstLineStyle)
             hold on
             MoDAL.TSPlot(time2,signal2,color=options.secondColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
-                tsLim=options.tsLim)
+                tsLim=options.tsLim,linestyle=options.secondLineStyle)
             legend(options.legends,'Location',options.legendsLoc,'orientation','horizontal')
             title(options.title)
 
@@ -1182,6 +1190,8 @@ classdef MoDAL
             % fontSize - Sets the font size to this value.
             % firstColor - Color string for the first signal.
             % secondColor - Color string for the second signal.
+            % firstLineStyle – Line style for the first signal.
+            % secondLineStyle – Line style for the first signal.
             % mirrori - Mirroring applied to the beginning of the signal.
             %           Even mirroring is the default option. Input should
             %           be a string with either 'e', 'o', or 'none'.
@@ -1209,6 +1219,8 @@ classdef MoDAL
                 options.fontSize double = 12;
                 options.firstColor string = 'k';
                 options.secondColor string = 'r';
+                options.firstLineStyle string = '-';
+                options.secondLineStyle string = '-';
                 options.mirrori string = 'e';
                 options.mirrorf string = 'e';
                 options.legends cell = {'Signal 1','Signal 2'};
@@ -1223,11 +1235,11 @@ classdef MoDAL
             subplot(2,1,1)
             MoDAL.TSPlot(time1,signal1,color=options.firstColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
-                tsLim=options.tsLim)
+                tsLim=options.tsLim,linestyle=options.firstLineStyle)
             hold on
             MoDAL.TSPlot(time2,signal2,color=options.secondColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
-                tsLim=options.tsLim)
+                tsLim=options.tsLim,linestyle=options.secondLineStyle)
             legend(options.legends,'Location',options.legendsLoc,'orientation','horizontal')
             title(options.title)
 
@@ -1292,6 +1304,8 @@ classdef MoDAL
             % fontSize - Sets the font size to this value.
             % firstColor - Color string for the first signal.
             % secondColor - Color string for the second signal.
+            % firstLineStyle – Line style for the first signal.
+            % secondLineStyle – Line style for the first signal.
             % mirrori - Mirroring applied to the beginning of the signal.
             %           Even mirroring is the default option. Input should
             %           be a string with either 'e', 'o', or 'none'.
@@ -1323,6 +1337,8 @@ classdef MoDAL
                 options.fontSize double = 12;
                 options.firstColor string = 'k';
                 options.secondColor string = 'r';
+                options.firstLineStyle string = '-';
+                options.secondLineStyle string = '-';
                 options.mirrori string = 'e';
                 options.mirrorf string = 'e';
                 options.colorMap double = MoDAL.UnbiasedOneMinusPink;
@@ -1337,11 +1353,11 @@ classdef MoDAL
             subplot(3,1,1)
             MoDAL.TSPlot(time1,signal1,color=options.firstColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
-                tsLim=options.tsLim)
+                tsLim=options.tsLim,linestyle=options.firstLineStyle)
             hold on
             MoDAL.TSPlot(time2,signal2,color=options.secondColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
-                tsLim=options.tsLim)
+                tsLim=options.tsLim,linestyle=options.secondLineStyle)
             legend(options.legends,'Location',options.legendsLoc,'orientation','horizontal')
             title(options.title)
 
@@ -1416,6 +1432,8 @@ classdef MoDAL
             % fontSize - Sets the font size to this value.
             % firstColor - Color string for the first signal.
             % secondColor - Color string for the second signal.
+            % firstLineStyle – Line style for the first signal.
+            % secondLineStyle – Line style for the first signal.
             % mirrori - Mirroring applied to the beginning of the signal.
             %           Even mirroring is the default option. Input should
             %           be a string with either 'e', 'o', or 'none'.
@@ -1445,6 +1463,8 @@ classdef MoDAL
                 options.fontSize double = 12;
                 options.firstColor string = 'k';
                 options.secondColor string = 'r';
+                options.firstLineStyle string = '-';
+                options.secondLineStyle string = '-';
                 options.force double = [];
                 options.legends cell = {'Signal 1','Signal 2'};
                 options.legendsLoc string = 'northeast';
@@ -1466,11 +1486,11 @@ classdef MoDAL
             subplot(2,1,1)
             MoDAL.TSPlot(time1,signal1,color=options.firstColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
-                tsLim=options.tsLim)
+                tsLim=options.tsLim,linestyle=options.firstLineStyle)
             hold on
             MoDAL.TSPlot(time2,signal2,color=options.secondColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
-                tsLim=options.tsLim)
+                tsLim=options.tsLim,linestyle=options.secondLineStyle)
             legend(options.legends,'Location',options.legendsLoc,'orientation','horizontal')
             title(options.title)
 
@@ -2728,8 +2748,9 @@ classdef MoDAL
                 options.timeStart double = time(1);
                 options.timeEnd double = time(end);
                 options.tsLim double = nan;
+                options.linestyle string = '-';
             end
-            plot(time,signal,options.color)
+            plot(time,signal,options.color,'LineStyle',options.linestyle)
             MoDAL.TimeLabel(options.label)
             MoDAL.YLabel(options.label)
             set(gca,'FontSize',options.fontSize)
@@ -2753,6 +2774,7 @@ classdef MoDAL
                 options.force double = [];
                 options.color string = 'k';
                 options.fontSize double = 12;
+                options.linestyle string = '-';
             end
             dt = time(2)-time(1);
             freq = 0:1/time(end):1/(2*dt);
@@ -2761,12 +2783,12 @@ classdef MoDAL
                 Fx = fft(signal);
                 FF = fft(options.force);
                 FFx = abs(Fx(1:length(freq))./FF(1:length(freq)));
-                semilogy(freq,FFx,options.color)
+                semilogy(freq,FFx,options.color,'LineStyle',options.linestyle)
                 MoDAL.YLabel(options.label,1)
             else
                 Fx = fft(signal);
                 FFx = abs(Fx(1:length(freq)))*2/L;
-                semilogy(freq,FFx,options.color)
+                semilogy(freq,FFx,options.color,'LineStyle',options.linestyle)
                 MoDAL.YLabel(options.label)
             end
             xlim([minFreq maxFreq])

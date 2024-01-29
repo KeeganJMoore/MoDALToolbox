@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.1.15";
+        Version = "1.2.5";
     end
 
     methods(Static)
@@ -515,9 +515,13 @@ classdef MoDAL
             %           value.
             % timeEnd - Sets the maximum xlimit for time plots to this
             %           value.
+            % tsLim - Sets the ylimit to [-tsLim, tsLim] if only a single
+            %         value is provided or to [tsLim(1) tsLim(2)] if two are
+            %         provided.
             % FontSize - Sets the font size to this value.
             % title - Adds title to the time series plot. Default is no
             %         title.
+            % hideX - Hides the xticklabels and xlabel for the first plot.
 
             arguments
                 time (:,1) double
@@ -527,9 +531,11 @@ classdef MoDAL
                 options.label string = '';
                 options.timeStart double = time(1);
                 options.timeEnd double = time(end);
+                options.tsLim double = nan;
                 options.fontSize double = 12;
                 options.force (:,1) double = [];
                 options.title string = '';
+                options.hideX double = 0;
             end
 
             figure
@@ -537,13 +543,15 @@ classdef MoDAL
             subplot(2,1,1)
             MoDAL.TSPlot(time,signal,timeStart=options.timeStart,...
                 timeEnd=options.timeEnd,label=options.label, ...
-                fontSize=options.fontSize)
+                fontSize=options.fontSize,tsLim=options.tsLim)
             title(options.title)
 
             % Plot FFT
             subplot(2,1,2)
             MoDAL.FTPlot(time,signal,minFreq,maxFreq,force=options.force, ...
                 label=options.label,fontSize=options.fontSize)
+
+            if options.hideX; MoDAL.HideX;end
         end
 
         function PlotTSWT(time,signal,minFreq,maxFreq,options)
@@ -573,6 +581,9 @@ classdef MoDAL
             %           value.
             % timeEnd - Sets the maximum xlimit for time plots to this
             %           value.
+            % tsLim - Sets the ylimit to [-tsLim, tsLim] if only a single
+            %         value is provided or to [tsLim(1) tsLim(2)] if two are
+            %         provided.
             % FontSize - Sets the font size to this value.
             % mirrori - Mirroring applied to the beginning of the signal.
             %           Even mirroring is the default option. Input should
@@ -581,11 +592,12 @@ classdef MoDAL
             %           mirroring is the default option. Input should
             %           be a string with either 'e', 'o', or 'none'.
             % colorMap - A colormap vector used for coloring the WT
-            %            spectrum. Default option is flipud(gray).
+            %            spectrum. Default option is MoDAL.UnbiasedOneMinusPink.
             % wtPower - Raises the WT spectrum to this power. Default
             %           option is 1.
             % title - Adds title to the time series plot. Default is no
             %         title.
+            % hideX - Hides the xticklabels and xlabel for the first plot.
 
             arguments
                 time (:,1) double
@@ -597,12 +609,14 @@ classdef MoDAL
                 options.label string = '';
                 options.timeStart double = time(1);
                 options.timeEnd double = time(end);
+                options.tsLim double = nan;
                 options.fontSize double = 12;
                 options.mirrori string = 'e';
                 options.mirrorf string = 'e';
-                options.colorMap double = flipud(gray);
+                options.colorMap double = MoDAL.UnbiasedOneMinusPink;
                 options.wtPower double = 1;
                 options.title string = '';
+                options.hideX double = 0;
             end
 
             figure
@@ -610,7 +624,7 @@ classdef MoDAL
             subplot(2,1,1)
             MoDAL.TSPlot(time,signal,timeStart=options.timeStart,...
                 timeEnd=options.timeEnd,label=options.label, ...
-                fontSize=options.fontSize)
+                fontSize=options.fontSize,tsLim=options.tsLim)
             title(options.title)
 
             % Compute WT
@@ -621,6 +635,8 @@ classdef MoDAL
             % Plot WT
             subplot(2,1,2)
             MoDAL.WTSpectraPlot(time,freq,mods,options)
+
+            if options.hideX; MoDAL.HideX;end
         end
 
         function PlotTSWTFT(time,signal,minFreq,maxFreq,options)
@@ -651,6 +667,9 @@ classdef MoDAL
             %             value.
             % timeEnd - Sets the maximum xlimit for time plots to this
             %           value.
+            % tsLim - Sets the ylimit to [-tsLim, tsLim] if only a single
+            %         value is provided or to [tsLim(1) tsLim(2)] if two are
+            %         provided.
             % fontSize - Sets the font size to this value.
             % mirrori - Mirroring applied to the beginning of the signal.
             %           Even mirroring is the default option. Input should
@@ -659,11 +678,12 @@ classdef MoDAL
             %           mirroring is the default option. Input should
             %           be a string with either 'e', 'o', or 'none'.
             % colorMap - A colormap vector used for coloring the WT
-            %            spectrum. Default option is flipud(gray).
+            %            spectrum. Default option is MoDAL.UnbiasedOneMinusPink.
             % wtPower - Raises the WT spectrum to this power. Default
             %           option is 1.
             % title - Adds title to the time series plot. Default is no
             %         title.
+            % hideX - Hides the xticklabels and xlabel for the first two plots.
             arguments
                 time (:,1) double
                 signal (:,1) double
@@ -674,13 +694,15 @@ classdef MoDAL
                 options.label string = '';
                 options.timeStart double = time(1);
                 options.timeEnd double = time(end);
+                options.tsLim double = nan;
                 options.fontSize double = 12;
                 options.force (:,1) double = [];
                 options.mirrori string = 'e';
                 options.mirrorf string = 'e';
-                options.colorMap double = flipud(gray);
+                options.colorMap double = MoDAL.UnbiasedOneMinusPink;
                 options.wtPower double = 1;
                 options.title string = '';
+                options.hideX double = 0;
             end
 
             figure
@@ -688,7 +710,7 @@ classdef MoDAL
             subplot(3,1,1)
             MoDAL.TSPlot(time,signal,timeStart=options.timeStart,...
                 timeEnd=options.timeEnd,label=options.label, ...
-                fontSize=options.fontSize)
+                fontSize=options.fontSize,tsLim=options.tsLim)
             title(options.title)
 
             % Compute WT
@@ -704,6 +726,8 @@ classdef MoDAL
             subplot(3,1,3)
             MoDAL.FTPlot(time,signal,minFreq,maxFreq,force=options.force, ...
                 label=options.label,fontSize=options.fontSize)
+
+            if options.hideX; MoDAL.HideX;end
         end
 
         function PlotTSMWT(time,signal,minFreq,maxFreq,options)
@@ -732,6 +756,9 @@ classdef MoDAL
             %             value.
             % timeEnd - Sets the maximum xlimit for time plots to this
             %           value.
+            % tsLim - Sets the ylimit to [-tsLim, tsLim] if only a single
+            %         value is provided or to [tsLim(1) tsLim(2)] if two are
+            %         provided.
             % fontSize - Sets the font size to this value.
             % mirrori - Mirroring applied to the beginning of the signal.
             %           Even mirroring is the default option. Input should
@@ -741,6 +768,7 @@ classdef MoDAL
             %           be a string with either 'e', 'o', or 'none'.
             % title - Adds title to the time series plot. Default is no
             %         title.
+            % hideX - Hides the xticklabels and xlabel for the first plot.
             arguments
                 time (:,1) double
                 signal (:,1) double
@@ -751,10 +779,12 @@ classdef MoDAL
                 options.label string = '';
                 options.timeStart double = time(1);
                 options.timeEnd double = time(end);
+                options.tsLim double = nan;
                 options.fontSize double = 12;
                 options.mirrori string = 'e';
                 options.mirrorf string = 'e';
                 options.title string = '';
+                options.hideX double = 0;
             end
 
             figure
@@ -773,6 +803,8 @@ classdef MoDAL
             subplot(2,1,2)
             MoDAL.MWTPlot(freq,max(mods),minFreq,maxFreq, ...
                 fontSize=options.fontSize,label=options.label)
+
+            if options.hideX; MoDAL.HideX;end
         end
 
         function PlotTSWTMWT(time,signal,minFreq,maxFreq,options)
@@ -801,6 +833,9 @@ classdef MoDAL
             %             value.
             % timeEnd - Sets the maximum xlimit for time plots to this
             %           value.
+            % tsLim - Sets the ylimit to [-tsLim, tsLim] if only a single
+            %         value is provided or to [tsLim(1) tsLim(2)] if two are
+            %         provided.
             % fontSize - Sets the font size to this value.
             % mirrori - Mirroring applied to the beginning of the signal.
             %           Even mirroring is the default option. Input should
@@ -809,11 +844,12 @@ classdef MoDAL
             %           mirroring is the default option. Input should
             %           be a string with either 'e', 'o', or 'none'.
             % colorMap - A colormap vector used for coloring the WT
-            %            spectrum. Default option is flipud(gray).
+            %            spectrum. Default option is MoDAL.UnbiasedOneMinusPink.
             % wtPower - Raises the WT spectrum to this power. Default
             %           option is 1.
             % title - Adds title to the time series plot. Default is no
             %         title.
+            % hideX - Hides the xticklabels and xlabel for the first two plots.
             arguments
                 time (:,1) double
                 signal (:,1) double
@@ -824,12 +860,14 @@ classdef MoDAL
                 options.label string = '';
                 options.timeStart double = time(1);
                 options.timeEnd double = time(end);
+                options.tsLim double = nan;
                 options.fontSize double = 12;
                 options.mirrori string = 'e';
                 options.mirrorf string = 'e';
-                options.colorMap double = flipud(gray);
+                options.colorMap double = MoDAL.UnbiasedOneMinusPink;
                 options.wtPower double = 1;
                 options.title string = '';
+                options.hideX double = 0;
             end
 
             figure
@@ -852,6 +890,8 @@ classdef MoDAL
             subplot(3,1,3)
             MoDAL.MWTPlot(freq,max(mods),minFreq,maxFreq, ...
                 fontSize=options.fontSize,label=options.label)
+
+            if options.hideX; MoDAL.HideX;end
         end
 
         function PlotTSWT_Compare(time1,signal1,time2,signal2,minFreq,maxFreq,options)
@@ -884,7 +924,12 @@ classdef MoDAL
             %             value.
             % timeEnd - Sets the maximum xlimit for time plots to this
             %           value.
+            % tsLim - Sets the ylimit to [-tsLim, tsLim] if only a single 
+            %         value is provided or to [tsLim(1) tsLim(2)] if two are
+            %         provided.
             % fontSize - Sets the font size to this value.
+            % firstColor - Color string for the first signal.
+            % secondColor - Color string for the second signal.
             % mirrori - Mirroring applied to the beginning of the signal.
             %           Even mirroring is the default option. Input should
             %           be a string with either 'e', 'o', or 'none'.
@@ -892,13 +937,14 @@ classdef MoDAL
             %           mirroring is the default option. Input should
             %           be a string with either 'e', 'o', or 'none'.
             % colorMap - A colormap vector used for coloring the WT
-            %            spectrum. Default option is flipud(gray).
+            %            spectrum. Default option is MoDAL.UnbiasedOneMinusPink.
             % legends - 2x1 cell containing two strings that describe
             %           signal 1 and signal 2, respectively.
             % wtPower - Raises the WT spectrum to this power. Default
             %           option is 1.
             % title - Adds title to the time series plot. Default is no
             %         title.
+            % hideX - Hides the xticklabels and xlabel for the first two plots.
             arguments
                 time1 (:,1) double
                 signal1 (:,1) double
@@ -911,25 +957,33 @@ classdef MoDAL
                 options.label string = '';
                 options.timeStart double = min(time1(1),time2(1));
                 options.timeEnd double = max(time1(end),time2(end));
+                options.tsLim double = nan;
                 options.fontSize double = 12;
+                options.firstColor string = 'k';
+                options.secondColor string = 'r';
+                options.firstLineStyle string = '-';
+                options.secondLineStyle string = '-';
                 options.force double = [];
                 options.mirrori string = 'e';
                 options.mirrorf string = 'e';
-                options.colorMap double = flipud(gray);
+                options.colorMap double = MoDAL.UnbiasedOneMinusPink;
                 options.legends cell = {'Signal 1','Signal 2'};
                 options.legendsLoc string = 'northeast';
                 options.wtPower double = 1;
                 options.title string = '';
+                options.hideX double = 0;
             end
 
             figure
             % Plot Time Series
-            subplot(3,1,1)
-            MoDAL.TSPlot(time1,signal1,color='k',fontSize=options.fontSize, ...
-                label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd)
+            subplot(3,1,1);
+            MoDAL.TSPlot(time1,signal1,color=options.firstColor,fontSize=options.fontSize, ...
+                label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
+                tsLim=options.tsLim,linestyle=options.firstLineStyle)
             hold on
-            MoDAL.TSPlot(time2,signal2,color='c',fontSize=options.fontSize, ...
-                label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd)
+            MoDAL.TSPlot(time2,signal2,color=options.secondColor,fontSize=options.fontSize, ...
+                label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
+                tsLim=options.tsLim,linestyle=options.secondLineStyle)
             legend(options.legends,'Location',options.legendsLoc,'orientation','horizontal')
             title(options.title)
 
@@ -947,12 +1001,16 @@ classdef MoDAL
             % Plot Wavelets
             subplot(3,1,2);
             MoDAL.WTSpectraPlot(time1,freq1,mods1,options)
+            clim([0 1])
             title(options.legends{1})
 
             subplot(3,1,3);
             MoDAL.WTSpectraPlot(time2,freq2,mods2,options)
+            clim([0 1])
             title(options.legends{2})
+            if options.hideX; MoDAL.HideX;end
         end
+
 
         function PlotTSWTFT_Compare(time1,signal1,time2,signal2,minFreq,maxFreq,options)
             % Plots the time series, wavelet transform, and FFT/FRF of two signals.
@@ -986,7 +1044,12 @@ classdef MoDAL
             %             value.
             % timeEnd - Sets the maximum xlimit for time plots to this
             %           value.
+            % tsLim - Sets the ylimit to [-tsLim, tsLim] if only a single
+            %         value is provided or to [tsLim(1) tsLim(2)] if two are
+            %         provided.
             % fontSize - Sets the font size to this value.
+            % firstColor - Color string for the first signal.
+            % secondColor - Color string for the second signal.
             % mirrori - Mirroring applied to the beginning of the signal.
             %           Even mirroring is the default option. Input should
             %           be a string with either 'e', 'o', or 'none'.
@@ -994,13 +1057,14 @@ classdef MoDAL
             %           mirroring is the default option. Input should
             %           be a string with either 'e', 'o', or 'none'.
             % colorMap - A colormap vector used for coloring the WT
-            %            spectrum. Default option is flipud(gray).
+            %            spectrum. Default option is MoDAL.UnbiasedOneMinusPink.
             % legends - 2x1 cell containing two strings that describe
             %           signal 1 and signal 2, respectively.
             % wtPower - Raises the WT spectrum to this power. Default
             %           option is 1.
             % title - Adds title to the time series plot. Default is no
             %         title.
+            % hideX - Hides the xticklabels and xlabel for the first two plots.
             arguments
                 time1 (:,1) double
                 signal1 (:,1) double
@@ -1013,15 +1077,21 @@ classdef MoDAL
                 options.label string = '';
                 options.timeStart double = min(time1(1),time2(1));
                 options.timeEnd double = max(time1(end),time2(end));
+                options.tsLim double = nan;
                 options.fontSize double = 12;
+                options.firstColor string = 'k';
+                options.secondColor string = 'r';
+                options.firstLineStyle string = '-';
+                options.secondLineStyle string = '-';
                 options.force double = [];
                 options.mirrori string = 'e';
                 options.mirrorf string = 'e';
-                options.colorMap double = flipud(gray);
+                options.colorMap double = MoDAL.UnbiasedOneMinusPink;
                 options.legends cell = {'Signal 1','Signal 2'};
                 options.legendsLoc string = 'northeast';
                 options.wtPower double = 1;
                 options.title string = '';
+                options.hideX double = 0;
             end
             if size(options.force,1) < size(options.force,2)
                 options.force = options.force';
@@ -1036,11 +1106,13 @@ classdef MoDAL
 
             figure
             subplot(3,1,1)
-            MoDAL.TSPlot(time1,signal1,color='k',fontSize=options.fontSize, ...
-                label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd)
+            MoDAL.TSPlot(time1,signal1,color=options.firstColor,fontSize=options.fontSize, ...
+                label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
+                tsLim=options.tsLim,linestyle=options.firstLineStyle)
             hold on
-            MoDAL.TSPlot(time2,signal2,color='c',fontSize=options.fontSize, ...
-                label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd)
+            MoDAL.TSPlot(time2,signal2,color=options.secondColor,fontSize=options.fontSize, ...
+                label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
+                tsLim=options.tsLim,linestyle=options.secondLineStyle)
             legend(options.legends,'Location',options.legendsLoc,'orientation','horizontal')
             title(options.title)
 
@@ -1059,20 +1131,23 @@ classdef MoDAL
             subplot(3,2,3)
             MoDAL.WTSpectraPlot(time1,freq1,mods1,options)
             title(options.legends{1})
+            clim([0 1])
 
             subplot(3,2,4)
             MoDAL.WTSpectraPlot(time2,freq2,mods2,options)
             title(options.legends{2})
+            clim([0 1])
 
             S4 = subplot(3,1,3);
             MoDAL.FTPlot(time1,signal1,minFreq,maxFreq,force=F1, ...
-                label=options.label,fontSize=options.fontSize)
+                label=options.label,fontSize=options.fontSize,color=options.firstColor)
             hold on
-            MoDAL.FTPlot(time2,signal2,minFreq,maxFreq,force=F2,color='c', ...
+            MoDAL.FTPlot(time2,signal2,minFreq,maxFreq,force=F2,color=options.secondColor, ...
                 label=options.label,fontSize=options.fontSize)
             legend(options.legends,'Location',options.legendsLoc,'orientation','horizontal')
             drawnow;
             S4.Position(2) = 0.12464;
+            if options.hideX; MoDAL.HideX;end
         end
 
         function PlotTSMWT_Compare(time1,signal1,time2,signal2,minFreq,maxFreq,options)
@@ -1105,7 +1180,12 @@ classdef MoDAL
             %             value.
             % timeEnd - Sets the maximum xlimit for time plots to this
             %           value.
+            % tsLim - Sets the ylimit to [-tsLim, tsLim] if only a single
+            %         value is provided or to [tsLim(1) tsLim(2)] if two are
+            %         provided.
             % fontSize - Sets the font size to this value.
+            % firstColor - Color string for the first signal.
+            % secondColor - Color string for the second signal.
             % mirrori - Mirroring applied to the beginning of the signal.
             %           Even mirroring is the default option. Input should
             %           be a string with either 'e', 'o', or 'none'.
@@ -1116,6 +1196,7 @@ classdef MoDAL
             %           signal 1 and signal 2, respectively.
             % title - Adds title to the time series plot. Default is no
             %         title.
+            % hideX - Hides the xticklabels and xlabel for the first two plots.
             arguments
                 time1 (:,1) double
                 signal1 (:,1) double
@@ -1128,23 +1209,31 @@ classdef MoDAL
                 options.label string = '';
                 options.timeStart double = min(time1(1),time2(1));
                 options.timeEnd double = max(time1(end),time2(end));
+                options.tsLim double = nan;
                 options.fontSize double = 12;
+                options.firstColor string = 'k';
+                options.secondColor string = 'r';
+                options.firstLineStyle string = '-';
+                options.secondLineStyle string = '-';
                 options.mirrori string = 'e';
                 options.mirrorf string = 'e';
                 options.legends cell = {'Signal 1','Signal 2'};
                 options.legendsLoc string = 'northeast';
                 options.title string = '';
+                options.hideX double = 0;
             end
 
             figure
 
             % Plot the Time Series
             subplot(2,1,1)
-            MoDAL.TSPlot(time1,signal1,color='k',fontSize=options.fontSize, ...
-                label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd)
+            MoDAL.TSPlot(time1,signal1,color=options.firstColor,fontSize=options.fontSize, ...
+                label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
+                tsLim=options.tsLim,linestyle=options.firstLineStyle)
             hold on
-            MoDAL.TSPlot(time2,signal2,color='c',fontSize=options.fontSize, ...
-                label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd)
+            MoDAL.TSPlot(time2,signal2,color=options.secondColor,fontSize=options.fontSize, ...
+                label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
+                tsLim=options.tsLim,linestyle=options.secondLineStyle)
             legend(options.legends,'Location',options.legendsLoc,'orientation','horizontal')
             title(options.title)
 
@@ -1168,6 +1257,8 @@ classdef MoDAL
                 fontSize=options.fontSize,label=options.label)
             legend(options.legends,'Location',options.legendsLoc, ...
                 'orientation','horizontal')
+
+            if options.hideX; MoDAL.HideX;end
             drawnow;
         end
 
@@ -1201,7 +1292,12 @@ classdef MoDAL
             %             value.
             % timeEnd - Sets the maximum xlimit for time plots to this
             %           value.
+            % tsLim - Sets the ylimit to [-tsLim, tsLim] if only a single
+            %         value is provided or to [tsLim(1) tsLim(2)] if two are
+            %         provided.
             % fontSize - Sets the font size to this value.
+            % firstColor - Color string for the first signal.
+            % secondColor - Color string for the second signal.
             % mirrori - Mirroring applied to the beginning of the signal.
             %           Even mirroring is the default option. Input should
             %           be a string with either 'e', 'o', or 'none'.
@@ -1209,13 +1305,14 @@ classdef MoDAL
             %           mirroring is the default option. Input should
             %           be a string with either 'e', 'o', or 'none'.
             % colorMap - A colormap vector used for coloring the WT
-            %            spectrum. Default option is flipud(gray).
+            %            spectrum. Default option is MoDAL.UnbiasedOneMinusPink.
             % legends - 2x1 cell containing two strings that describe
             %           signal 1 and signal 2, respectively.
             % wtPower - Raises the WT spectrum to this power. Default
             %           option is 1.
             % title - Adds title to the time series plot. Default is no
             %         title.
+            % hideX - Hides the xticklabels and xlabel for the first two plots.
             arguments
                 time1 (:,1) double
                 signal1 (:,1) double
@@ -1228,23 +1325,29 @@ classdef MoDAL
                 options.label string = '';
                 options.timeStart double = min(time1(1),time2(1));
                 options.timeEnd double = max(time1(end),time2(end));
+                options.tsLim double = nan;
                 options.fontSize double = 12;
+                options.firstColor string = 'k';
+                options.secondColor string = 'r';
                 options.mirrori string = 'e';
                 options.mirrorf string = 'e';
-                options.colorMap double = flipud(gray);
+                options.colorMap double = MoDAL.UnbiasedOneMinusPink;
                 options.legends cell = {'Signal 1','Signal 2'};
                 options.legendsLoc string = 'northeast';
                 options.wtPower double = 1;
                 options.title string = '';
+                options.hideX double = 0;
             end
 
             figure
             subplot(3,1,1)
-            MoDAL.TSPlot(time1,signal1,color='k',fontSize=options.fontSize, ...
-                label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd)
+            MoDAL.TSPlot(time1,signal1,color=options.firstColor,fontSize=options.fontSize, ...
+                label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
+                tsLim=options.tsLim,linestyle=options.firstLineStyle)
             hold on
-            MoDAL.TSPlot(time2,signal2,color='c',fontSize=options.fontSize, ...
-                label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd)
+            MoDAL.TSPlot(time2,signal2,color=options.secondColor,fontSize=options.fontSize, ...
+                label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
+                tsLim=options.tsLim,linestyle=options.secondLineStyle)
             legend(options.legends,'Location',options.legendsLoc,'orientation','horizontal')
             title(options.title)
 
@@ -1271,14 +1374,15 @@ classdef MoDAL
             % Plot MWT
             S4 = subplot(3,1,3);
             MoDAL.MWTPlot(freq1,max(mods1),minFreq,maxFreq, ...
-                fontSize=options.fontSize,label=options.label)
+                fontSize=options.fontSize,label=options.label,color=options.firstColor)
             hold on
-            MoDAL.MWTPlot(freq2,max(mods2),minFreq,maxFreq,color='c', ...
+            MoDAL.MWTPlot(freq2,max(mods2),minFreq,maxFreq,color=options.secondColor, ...
                 fontSize=options.fontSize,label=options.label)
             legend(options.legends,'Location',options.legendsLoc, ...
                 'orientation','horizontal')
             drawnow;
             S4.Position(2) = 0.12464;
+            if options.hideX; MoDAL.HideX;end
         end
 
 
@@ -1312,7 +1416,12 @@ classdef MoDAL
             %             value.
             % timeEnd - Sets the maximum xlimit for time plots to this
             %           value.
+            % tsLim - Sets the ylimit to [-tsLim, tsLim] if only a single
+            %         value is provided or to [tsLim(1) tsLim(2)] if two are
+            %         provided.
             % fontSize - Sets the font size to this value.
+            % firstColor - Color string for the first signal.
+            % secondColor - Color string for the second signal.
             % mirrori - Mirroring applied to the beginning of the signal.
             %           Even mirroring is the default option. Input should
             %           be a string with either 'e', 'o', or 'none'.
@@ -1320,13 +1429,14 @@ classdef MoDAL
             %           mirroring is the default option. Input should
             %           be a string with either 'e', 'o', or 'none'.
             % colorMap - A colormap vector used for coloring the WT
-            %            spectrum. Default option is flipud(gray).
+            %            spectrum. Default option is MoDAL.UnbiasedOneMinusPink.
             % legends - 2x1 cell containing two strings that describe
             %           signal 1 and signal 2, respectively.
             % wtPower - Raises the WT spectrum to this power. Default
             %           option is 1.
             % title - Adds title to the time series plot. Default is no
             %         title.
+            % hideX - Hides the xticklabels and xlabel for the first two plots.
             arguments
                 time1 (:,1) double
                 signal1 (:,1) double
@@ -1337,11 +1447,15 @@ classdef MoDAL
                 options.label string = '';
                 options.timeStart double = min(time1(1),time2(1));
                 options.timeEnd double = max(time1(end),time2(end));
+                options.tsLim double = nan;
                 options.fontSize double = 12;
+                options.firstColor string = 'k';
+                options.secondColor string = 'r';
                 options.force double = [];
                 options.legends cell = {'Signal 1','Signal 2'};
                 options.legendsLoc string = 'northeast';
                 options.title string = '';
+                options.hideX double = 0;
             end
             if size(options.force,1) < size(options.force,2)
                 options.force = options.force';
@@ -1356,24 +1470,30 @@ classdef MoDAL
 
             figure
             subplot(2,1,1)
-            MoDAL.TSPlot(time1,signal1,color='k',fontSize=options.fontSize, ...
-                label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd)
+            MoDAL.TSPlot(time1,signal1,color=options.firstColor,fontSize=options.fontSize, ...
+                label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
+                tsLim=options.tsLim,linestyle=options.firstLineStyle)
             hold on
-            MoDAL.TSPlot(time2,signal2,color='c',fontSize=options.fontSize, ...
-                label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd)
+            MoDAL.TSPlot(time2,signal2,color=options.secondColor,fontSize=options.fontSize, ...
+                label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
+                tsLim=options.tsLim,linestyle=options.secondLineStyle)
             legend(options.legends,'Location',options.legendsLoc,'orientation','horizontal')
             title(options.title)
 
             subplot(2,1,2);
-            MoDAL.FTPlot(time1,signal1,minFreq,maxFreq,force=F1, ...
+            MoDAL.FTPlot(time1,signal1,minFreq,maxFreq,force=F1,color=options.firstColor, ...
                 label=options.label,fontSize=options.fontSize)
             hold on
-            MoDAL.FTPlot(time2,signal2,minFreq,maxFreq,force=F2,color='c', ...
+            MoDAL.FTPlot(time2,signal2,minFreq,maxFreq,force=F2,color=options.secondColor, ...
                 label=options.label,fontSize=options.fontSize)
             legend(options.legends,'Location',options.legendsLoc,'orientation','horizontal')
             drawnow;
+            if options.hideX; MoDAL.HideX;end
         end
 
+        function out = UnbiasedOneMinusPink
+            out = MoDAL.UnbiasedOneMinusPinkMat;
+        end
 
         % Plot FE Models
         function PlotMesh(coordinates,nodes,options)
@@ -1547,20 +1667,26 @@ classdef MoDAL
             end
         end
 
-        function Mode = IWD(time,signal,lowerFreqs,upperFreqs,mirrori,mirrorf)
+        function Mode = IWD(time,signal,lowerFreqs,upperFreqs,options)
             arguments
                 time double
                 signal double
                 lowerFreqs double
                 upperFreqs double
-                mirrori string = 'e';
-                mirrorf string = 'e';
+                options.motherWaveletFreq = 16;
+                options.mirrori string = 'e';
+                options.mirrorf string = 'e';
+                options.chp1 = 0.2;
+                options.chp2 = 0.2;
             end
 
-            [x_mirror,NoMirrorIni,NoMirrorEnd] = MoDAL.MirrorSignal(time,signal,mirrori,mirrorf,0.2,0.2);
+            [x_mirror,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd] = ...
+                MoDAL.MirrorSignal(time,signal,options.mirrori, ...
+                options.mirrorf,options.chp1,options.chp2);
+            
             signal = x_mirror;
-
-            Fo = 16;
+        
+            Fo = options.motherWaveletFreq;
             dt = time(2)-time(1);
             Fs = 1/dt;
 
@@ -1670,10 +1796,24 @@ classdef MoDAL
             % strainin      =>   Strain [in/in]
             % strainft      =>   Strain [ft/ft]
             % imf           =>   Amplitude [\cdot]
-            % imfdm          =>   Amplitude [m]
-            % imfdmm         =>   Amplitude [mm]
-            % imfdin         =>   Amplitude [in]
-            % imfdft         =>   Amplitude [ft]
+            % imfdm         =>   Amplitude [m]
+            % imfdmm        =>   Amplitude [mm]
+            % imfdin        =>   Amplitude [in]
+            % imfdft        =>   Amplitude [ft]
+            % imfvm         =>   Amplitude [m/s]
+            % imfvmm        =>   Amplitude [mm/s]
+            % imfvin        =>   Amplitude [in/s]
+            % imfvft        =>   Amplitude [ft/s]
+            % imfam         =>   Amplitude [m/s^2]
+            % imfamm        =>   Amplitude [mm/s^2]
+            % imfain        =>   Amplitude [in/s^2]
+            % imfaft        =>   Amplitude [ft/s^2]
+            % imff          =>   Amplitude [N]
+            % imffn         =>   Amplitude [kN]
+            % imfflb        =>   Amplitude [lb]
+            % imffkip       =>   Amplitude [kip]
+            % phase         =>   Phase [rad]
+            % phasevel      =>   Phase Vel. [rad/s]
             
             if nargin == 1
                 switch lower(Label)
@@ -1765,12 +1905,12 @@ classdef MoDAL
                         ylabel('Amplitude [ft/s^2]')
                     case 'imffn'
                         ylabel('Amplitude [N]')
-                    case 'imff'
-                        ylabel('Amplitude [mm]')
-                    case 'imfdin'
-                        ylabel('Amplitude [in]')
-                    case 'imfdft'
-                        ylabel('Amplitude [ft]')
+                    case 'imffkn'
+                        ylabel('Amplitude [kN]')
+                    case 'imfflb'
+                        ylabel('Amplitude [lb]')
+                    case 'imffkip'
+                        ylabel('Amplitude [kip]')
                     case 'phase'
                         ylabel('Phase [rad]')
                     case 'phasevel'
@@ -1790,6 +1930,8 @@ classdef MoDAL
                         ylabel({'Mobility','[(m/s)/N]'})
                     case 'Disp'
                         ylabel({'Receptance','[m/N]'})
+                    case 'Dispmm'
+                        ylabel({'Receptance','[mm/N]'})
                     case 'Tension'
                         ylabel('Tension/Input Force [N/N]')
                     otherwise
@@ -2299,24 +2441,288 @@ classdef MoDAL
             theta = MoDAL.UnmirrorSignal(theta2,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd);
             omega = MoDAL.UnmirrorSignal(omega2,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd);
         end
+
+        function [fr,mods] = WaveletSignal(time,signal,minFreq,maxFreq,numFreq,motherWaveletFreq,mirrori,mirrorf)
+            chp1 = 0.2;
+            chp2 = 0.2;
+
+            [x_mirror,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd] = MoDAL.MirrorSignal(time,signal,mirrori,mirrorf,chp1,chp2);
+
+            [fr,mods] = MoDAL.WaveletTransform(time,x_mirror,minFreq,maxFreq, ...
+                'motherWaveletFreq',motherWaveletFreq,'numFreq',numFreq);
+
+            if NoMirrorIni == 0 && NoMirrorEnd == 0
+                mods = mods(L_chp1:end-L_chp2+1,:);
+            elseif NoMirrorIni == 0 && NoMirrorEnd == 1
+                mods = mods(L_chp1:end);
+            elseif NoMirrorIni == 1 && NoMirrorEnd == 0
+                mods = mods(1:end-L_chp2+1);
+            end
+        end
+
     end
 
+    properties (Constant,Access=private)
+        UnbiasedOneMinusPinkMat = [   0.94107            1            1'
+            0.93738      0.99608      0.99608;
+            0.93369      0.99216      0.99216;
+            0.93      0.98824      0.98824;
+            0.92631      0.98431      0.98431;
+            0.92262      0.98039      0.98039;
+            0.91893      0.97647      0.97647;
+            0.91524      0.97255      0.97255;
+            0.91155      0.96863      0.96863;
+            0.90786      0.96471      0.96471;
+            0.90417      0.96078      0.96078;
+            0.90047      0.95686      0.95686;
+            0.89678      0.95294      0.95294;
+            0.89309      0.94902      0.94902;
+            0.8894       0.9451       0.9451;
+            0.88571      0.94118      0.94118;
+            0.88202      0.93725      0.93725;
+            0.87833      0.93333      0.93333;
+            0.87464      0.92941      0.92941;
+            0.87095      0.92549      0.92549;
+            0.86726      0.92157      0.92157;
+            0.86357      0.91765      0.91765;
+            0.85988      0.91373      0.91373;
+            0.85619       0.9098       0.9098;
+            0.8525      0.90588      0.90588;
+            0.84881      0.90196      0.90196;
+            0.84512      0.89804      0.89804;
+            0.84143      0.89412      0.89412;
+            0.83774       0.8902       0.8902;
+            0.83405      0.88627      0.88627;
+            0.83036      0.88235      0.88235;
+            0.82667      0.87843      0.87843;
+            0.82297      0.87451      0.87451;
+            0.81928      0.87059      0.87059;
+            0.81559      0.86667      0.86667;
+            0.8119      0.86275      0.86275;
+            0.80821      0.85882      0.85882;
+            0.80452       0.8549       0.8549;
+            0.80083      0.85098      0.85098;
+            0.79714      0.84706      0.84706;
+            0.79345      0.84314      0.84314;
+            0.78976      0.83922      0.83922;
+            0.78607      0.83529      0.83529;
+            0.78238      0.83137      0.83137;
+            0.77869      0.82745      0.82745;
+            0.775      0.82353      0.82353;
+            0.77131      0.81961      0.81961;
+            0.76762      0.81569      0.81569;
+            0.76393      0.81176      0.81176;
+            0.76024      0.80784      0.80784;
+            0.75655      0.80392      0.80392;
+            0.75286          0.8          0.8;
+            0.74917      0.79608      0.79608;
+            0.74548      0.79216      0.79216;
+            0.74178      0.78824      0.78824;
+            0.73809      0.78431      0.78431;
+            0.7344      0.78039      0.78039;
+            0.73071      0.77647      0.77647;
+            0.72702      0.77255      0.77255;
+            0.72333      0.76863      0.76863;
+            0.71964      0.76471      0.76471;
+            0.71595      0.76078      0.76078;
+            0.71226      0.75686      0.75686;
+            0.70857      0.75294      0.75294;
+            0.70488      0.74902      0.74902;
+            0.70119       0.7451       0.7451;
+            0.6975      0.74118      0.74118;
+            0.69381      0.73725      0.73725;
+            0.69012      0.73333      0.73333;
+            0.68643      0.72941      0.72941;
+            0.68274      0.72549      0.72549;
+            0.67905      0.72157      0.72157;
+            0.67536      0.71765      0.71765;
+            0.67167      0.71373      0.71373;
+            0.66798       0.7098       0.7098;
+            0.66428      0.70588      0.70588;
+            0.66059      0.70196      0.70196;
+            0.6569      0.69804      0.69804;
+            0.65321      0.69412      0.69412;
+            0.64952       0.6902       0.6902;
+            0.64583      0.68627      0.68627;
+            0.64214      0.68235      0.68235;
+            0.63845      0.67843      0.67843;
+            0.63476      0.67451      0.67451;
+            0.63107      0.67059      0.67059;
+            0.62738      0.66667      0.66667;
+            0.62369      0.66275      0.66275;
+            0.62      0.65882      0.65882;
+            0.61631       0.6549       0.6549;
+            0.61262      0.65098      0.65098;
+            0.60893      0.64706      0.64706;
+            0.60524      0.64314      0.64314;
+            0.60155      0.63922      0.63922;
+            0.59786      0.63529      0.63529;
+            0.59417      0.63137      0.63137;
+            0.59048      0.62745      0.62745;
+            0.58678      0.62353      0.62353;
+            0.58309      0.61961      0.61961;
+            0.5794      0.61569      0.61569;
+            0.57571      0.61176      0.61176;
+            0.57202      0.60784      0.60784;
+            0.56833      0.60392      0.60392;
+            0.56464          0.6          0.6;
+            0.56095      0.59608      0.59608;
+            0.55726      0.59216      0.59216;
+            0.55357      0.58824      0.58824;
+            0.54988      0.58431      0.58431;
+            0.54619      0.58039      0.58039;
+            0.5425      0.57647      0.57647;
+            0.53881      0.57255      0.57255;
+            0.53512      0.56863      0.56863;
+            0.53143      0.56471      0.56471;
+            0.52774      0.56078      0.56078;
+            0.52405      0.55686      0.55686;
+            0.52036      0.55294      0.55294;
+            0.51667      0.54902      0.54902;
+            0.51298       0.5451       0.5451;
+            0.50928      0.54118      0.54118;
+            0.50559      0.53725      0.53725;
+            0.5019      0.53333      0.53333;
+            0.49821      0.52941      0.52941;
+            0.49452      0.52549      0.52549;
+            0.49083      0.52157      0.52157;
+            0.48714      0.51765      0.51765;
+            0.48345      0.51373      0.51373;
+            0.47976       0.5098       0.5098;
+            0.47607      0.50588      0.50588;
+            0.47238      0.50196      0.50196;
+            0.46869      0.49804      0.49804;
+            0.465      0.49412      0.49412;
+            0.46131       0.4902       0.4902;
+            0.45762      0.48627      0.48627;
+            0.45393      0.48235      0.48235;
+            0.45024      0.47843      0.47843;
+            0.44655      0.47451      0.47451;
+            0.44286      0.47059      0.47059;
+            0.43917      0.46667      0.46667;
+            0.43548      0.46275      0.46275;
+            0.43179      0.45882      0.45882;
+            0.42809       0.4549       0.4549;
+            0.4244      0.45098      0.45098;
+            0.42071      0.44706      0.44706;
+            0.41702      0.44314      0.44314;
+            0.41333      0.43922      0.43922;
+            0.40964      0.43529      0.43529;
+            0.40595      0.43137      0.43137;
+            0.40226      0.42745      0.42745;
+            0.39857      0.42353      0.42353;
+            0.39488      0.41961      0.41961;
+            0.39119      0.41569      0.41569;
+            0.3875      0.41176      0.41176;
+            0.38381      0.40784      0.40784;
+            0.38012      0.40392      0.40392;
+            0.37643          0.4          0.4;
+            0.37274      0.39608      0.39608;
+            0.36905      0.39216      0.39216;
+            0.36536      0.38824      0.38824;
+            0.36167      0.38431      0.38431;
+            0.35798      0.38039      0.38039;
+            0.35429      0.37647      0.37647;
+            0.35059      0.37255      0.37255;
+            0.3469      0.36863      0.36863;
+            0.34321      0.36471      0.36471;
+            0.33952      0.36078      0.36078;
+            0.33583      0.35686      0.35686;
+            0.33214      0.35294      0.35294;
+            0.32845      0.34902      0.34902;
+            0.32476       0.3451       0.3451;
+            0.32107      0.34118      0.34118;
+            0.31738      0.33725      0.33725;
+            0.31369      0.33333      0.33333;
+            0.31      0.32941      0.32941;
+            0.30631      0.32549      0.32549;
+            0.30262      0.32157      0.32157;
+            0.29893      0.31765      0.31765;
+            0.29524      0.31373      0.31373;
+            0.29155       0.3098       0.3098;
+            0.28786      0.30588      0.30588;
+            0.28417      0.30196      0.30196;
+            0.28048      0.29804      0.29804;
+            0.27679      0.29412      0.29412;
+            0.27309       0.2902       0.2902;
+            0.2694      0.28627      0.28627;
+            0.26571      0.28235      0.28235;
+            0.26202      0.27843      0.27843;
+            0.25833      0.27451      0.27451;
+            0.25464      0.27059      0.27059;
+            0.25095      0.26667      0.26667;
+            0.24726      0.26275      0.26275;
+            0.24357      0.25882      0.25882;
+            0.23988       0.2549       0.2549;
+            0.23619      0.25098      0.25098;
+            0.2325      0.24706      0.24706;
+            0.22881      0.24314      0.24314;
+            0.22512      0.23922      0.23922;
+            0.22143      0.23529      0.23529;
+            0.21774      0.23137      0.23137;
+            0.21405      0.22745      0.22745;
+            0.21036      0.22353      0.22353;
+            0.20667      0.21961      0.21961;
+            0.20298      0.21569      0.21569;
+            0.19929      0.21176      0.21176;
+            0.19559      0.20784      0.20784;
+            0.1919      0.20392      0.20392;
+            0.18821          0.2          0.2;
+            0.18452      0.19608      0.19608;
+            0.18083      0.19216      0.19216;
+            0.17714      0.18824      0.18824;
+            0.17345      0.18431      0.18431;
+            0.16976      0.18039      0.18039;
+            0.16607      0.17647      0.17647;
+            0.16238      0.17255      0.17255;
+            0.15869      0.16863      0.16863;
+            0.155      0.16471      0.16471;
+            0.15131      0.16078      0.16078;
+            0.14762      0.15686      0.15686;
+            0.14393      0.15294      0.15294;
+            0.14024      0.14902      0.14902;
+            0.13655       0.1451       0.1451;
+            0.13286      0.14118      0.14118;
+            0.12917      0.13725      0.13725;
+            0.12548      0.13333      0.13333;
+            0.12179      0.12941      0.12941;
+            0.1181      0.12549      0.12549;
+            0.1144      0.12157      0.12157;
+            0.11071      0.11765      0.11765;
+            0.10702      0.11373      0.11373;
+            0.10333       0.1098       0.1098;
+            0.099643      0.10588      0.10588;
+            0.095952      0.10196      0.10196;
+            0.092262     0.098039     0.098039;
+            0.088571     0.094118     0.094118;
+            0.084881     0.090196     0.090196;
+            0.08119     0.086275     0.086275;
+            0.0775     0.082353     0.082353;
+            0.073809     0.078431     0.078431;
+            0.070119      0.07451      0.07451;
+            0.066428     0.070588     0.070588;
+            0.062738     0.066667     0.066667;
+            0.059048     0.062745     0.062745;
+            0.055357     0.058824     0.058824;
+            0.051667     0.054902     0.054902;
+            0.047976      0.05098      0.05098;
+            0.044286     0.047059     0.047059;
+            0.040595     0.043137     0.043137;
+            0.036905     0.039216     0.039216;
+            0.033214     0.035294     0.035294;
+            0.029524     0.031373     0.031373;
+            0.025833     0.027451     0.027451;
+            0.022143     0.023529     0.023529;
+            0.018452     0.019608     0.019608;
+            0.014762     0.015686     0.015686;
+            0.011071     0.011765     0.011765;
+            0.0073809    0.0078431    0.0078431;
+            0.0036905    0.0039216    0.0039216;
+            0            0            0];
+    end
 
     %%%%% Static Private methods
     methods (Static,Access=private)
-
-        function P = OptimizeCutoff(x,Fnyq,amp,ampEst)
-            arguments
-                x double
-                Fnyq double
-                amp (:,1) double
-                ampEst (:,1) double
-            end
-            Fcs = x(1)/Fnyq;
-            [b,a] = butter(3,Fcs,'low');
-            amp2 = filtfilt(b,a,amp);
-            P = sum(abs(ampEst-amp2));
-        end
 
         function TSPlot(time,signal,options)
             arguments
@@ -2327,12 +2733,21 @@ classdef MoDAL
                 options.fontSize double = 12;
                 options.timeStart double = time(1);
                 options.timeEnd double = time(end);
+                options.tsLim double = nan;
+                options.linestyle string = '-';
             end
-            plot(time,signal,options.color)
+            plot(time,signal,options.color,'LineStyle',options.linestyle)
             MoDAL.TimeLabel(options.label)
             MoDAL.YLabel(options.label)
             set(gca,'FontSize',options.fontSize)
             xlim([options.timeStart options.timeEnd])
+            if ~isnan(options.tsLim)
+                if length(options.tsLim) == 1
+                    ylim([-options.tsLim options.tsLim])
+                else
+                    ylim(options.tsLim)
+                end
+            end
         end
 
         function FTPlot(time,signal,minFreq,maxFreq,options)
@@ -2345,6 +2760,7 @@ classdef MoDAL
                 options.force double = [];
                 options.color string = 'k';
                 options.fontSize double = 12;
+                options.linestyle string = '-';
             end
             dt = time(2)-time(1);
             freq = 0:1/time(end):1/(2*dt);
@@ -2353,12 +2769,12 @@ classdef MoDAL
                 Fx = fft(signal);
                 FF = fft(options.force);
                 FFx = abs(Fx(1:length(freq))./FF(1:length(freq)));
-                semilogy(freq,FFx,options.color)
+                semilogy(freq,FFx,options.color,'LineStyle',options.linestyle)
                 MoDAL.YLabel(options.label,1)
             else
                 Fx = fft(signal);
                 FFx = abs(Fx(1:length(freq)))*2/L;
-                semilogy(freq,FFx,options.color)
+                semilogy(freq,FFx,options.color,'LineStyle',options.linestyle)
                 MoDAL.YLabel(options.label)
             end
             xlim([minFreq maxFreq])
@@ -2388,7 +2804,6 @@ classdef MoDAL
             set(gca,'ydir','nor')
             colormap(options.colorMap)
             MoDAL.WTLabel(options.label)
-            clim([0 1])
             xlim([options.timeStart options.timeEnd])
             set(gca,'FontSize',options.fontSize)
         end
@@ -2466,25 +2881,6 @@ classdef MoDAL
                 else
                     P = checksval(minIndexes1);
                 end
-            end
-        end
-
-
-        function [fr,mods] = WaveletSignal(time,signal,minFreq,maxFreq,numFreq,motherWaveletFreq,mirrori,mirrorf)
-            chp1 = 0.2;
-            chp2 = 0.2;
-
-            [x_mirror,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd] = MoDAL.MirrorSignal(time,signal,mirrori,mirrorf,chp1,chp2);
-
-            [fr,mods] = MoDAL.WaveletTransform(time,x_mirror,minFreq,maxFreq, ...
-                'motherWaveletFreq',motherWaveletFreq,'numFreq',numFreq);
-
-            if NoMirrorIni == 0 && NoMirrorEnd == 0
-                mods = mods(L_chp1:end-L_chp2+1,:);
-            elseif NoMirrorIni == 0 && NoMirrorEnd == 1
-                mods = mods(L_chp1:end);
-            elseif NoMirrorIni == 1 && NoMirrorEnd == 0
-                mods = mods(1:end-L_chp2+1);
             end
         end
 
@@ -2616,6 +3012,28 @@ classdef MoDAL
             catch
                 error(message('stats:normpdf:InputSizeMismatch'));
             end
+        end
+
+        function HideX
+                % Extract axes from current figure
+                Ax = gcf().Children(strcmp(get(gcf().Children,'type'),'axes'));
+                switch length(Ax)
+                    case 3
+                        Ax3 = Ax(3);
+                        Ax2 = Ax(2);
+                        Ax1 = Ax(1);
+                        Ax3.XTickLabel = {''};
+                        Ax3.XLabel = xlabel('');
+                        Ax3.Position(4) = 0.24;
+                        Ax2.XTickLabel = {''};
+                        Ax2.XLabel = xlabel('');
+                        Ax2.Position(4) = 0.24;
+                        Ax1.Position(4) = 0.24;
+                        Ax1.XLabel = xlabel('Time [s]');
+                    case 2
+                        Ax(2).XTickLabel = '';
+                        Ax(2).XLabel = xlabel('');
+                end
         end
 
         function [x_mirror, t_mirror] = MirrorImgSigOIni(t, x)

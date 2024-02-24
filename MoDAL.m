@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.2.7";
+        Version = "1.2.8";
     end
 
     methods(Static)
@@ -346,7 +346,7 @@ classdef MoDAL
             % --------
             % K.J. Moore, M. Kurt, M. Eriten, D.M. McFarland, L.A. Bergman, A.F. Vakakis,
             % “Wavelet-Bounded Empirical Mode Decomposition for Measured Time Series Analysis,”
-            % Mechanical Systems and Signal Processing [IF: 8.934], 99:14–29, 2018.
+            % Mechanical Systems and Signal Processing, 99:14–29, 2018.
             % https://dx.doi.org/10.1016/j.ymssp.2017.06.005
 
             arguments

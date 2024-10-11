@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.1";
+        Version = "1.3.2";
     end
 
     methods(Static)
@@ -27,6 +27,10 @@ classdef MoDAL
             filename4 = 'emdc_fix.m';
             filename5 = 'emdc_fix.mexmaca64';
             source1 = fullfile(p1,filename1);
+            
+            if ~isfolder(userpath)
+                mkdir(userpath)
+            end
 
             destination1 = fullfile([userpath '/'],filename1);
             destination2 = fullfile([userpath '/'],filename2);
@@ -40,9 +44,6 @@ classdef MoDAL
             if ~isfile(destination4); websave(destination4,url3); end
             if ~isfile(destination5); websave(destination5,url4); end
 
-            if ~isfolder(userpath)
-                mkdir(userpath)
-            end
 
             destination = fullfile([userpath '/'],'startup.m');
 

@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.2.8";
+        Version = "1.3.0";
     end
 
     methods(Static)
@@ -281,6 +281,189 @@ classdef MoDAL
             Data.TimeEnd = options.endTime;
 
             save('AllData_Processed.mat','Data')
+        end
+
+
+
+        function Data = ProcessCIRecData(options)
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            % Process Recordings Output by Crystal Instruments Software
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            % This code loads the data stored inside the Run folders. Do not remove the
+            % text files from the Run folders.
+            %
+            %
+            % Inputs
+            % ------
+            % No inputs are required, but assumptions are made about the
+            % folder and file names. 
+            % Optional Inputs
+            % ---------------
+            % 
+            % textFileName - A repeated portion of name of the recording 
+            %                files that you are importing. The default is
+            %                "REC". The code searches for files that contain
+            %                the textFileName and ".txt", such that it accounts
+            %                for the incrementation that the CI software
+            %                applies to the recording file names.
+            % folderName – A repeated portion of the name of the folders
+            %              that contain the recording files. The default is
+            %              "Run". The code searches all folders that
+            %              contain folderName in their names for files that
+            %              contain the textFileName and ".txt". Thus, it
+            %              accounts for the incrementation that the CI
+            %              software applies to the runs.
+            % cutOffFreq - The cutoff frequency used for the high-pass
+            %              filter applied to the integrated velocities and
+            %              displacements. Default value is 3 Hz.
+            % order - The order of the high-pass Butterworth filter that is
+            %         to the integrated velocities and displacements.
+            % endTime - The desired end time for the processed data. Used
+            %           to truncate the measured data when either the
+            %           individual measurements were recorded for
+            %           different times or the user wants to truncate the
+            %           measurements to a shorter time. Default value is
+            %           1e6, which is intended to keep all data.
+            % firstChannelForce – A logical for specifying whether the
+            %                     first channel is a force or not. Default
+            %                     value is 1, which assumes that the first
+            %                     channel is a force.
+            % forceSorting - A logical that determines whether or not to
+            %                sort the measured data based on the applied
+            %                forces. The default value is on (1), which
+            %                then sorts the measurements from lowest to
+            %                highest applied force. Setting this value to
+            %                off (0) causes the measurements to be sorted
+            %                in the same order as the folders.
+            % saveFileName - Name of the file that the processed data gets
+            %                saved as. The default is
+            %                "AllData_Processed.mat".
+            % startValue – The starting time used to identify where the
+            %              data begins in the text file. The default value
+            %              is '0.00000000E+000        '. This can be
+            %              changed if the user wants to truncate the
+            %              beginning of the signal, but they will need
+            %              input the precise time that they want to start
+            %              at. In general, this value should be left alone.
+            %
+            % Outputs
+            % -------
+            % This code produces no explicit output. Instead, the code places the processed data
+            % into a struct called "Data" and saves that into a .mat file called 
+            % "AllData_Processed.mat". The struct "Data" contains all of the processed data and
+            % information regarding the filter. For example,
+            %
+            % Data = 
+            %
+            %  struct with fields:
+            %
+            %      MaxForce: [3×1 double]
+            %         Force: [2498560×3 double]
+            %          Time: [2498560×1 double]
+            %           Acc: [2498560×16×3 double]
+            %           Vel: [2498560×16×3 double]
+            %          Disp: [2498560×16×3 double]
+            %         Order: 3
+            %    CutOffFreq: 3
+            %       TimeEnd: 60
+
+
+            arguments
+                options.textFileName string = 'REC'
+                options.folderName string = 'Run'
+                options.cutOffFreq double = 3;
+                options.order double = 3;
+                options.endTime double = 1e5;
+                options.firstChannelForce logical = 1;
+                options.forceSorting logical = 1;
+                options.startValue char = '0.00000000E+000        ';
+            end
+            A = dir;
+            u = 1;
+            for ij = 1:length(A)
+                if strfind(A(ij).name,'Processed') > 0
+                elseif strfind(A(ij).name,'.mat') > 0
+                elseif strfind(A(ij).name,'Run') > 0
+                    if u == 1
+                        B = dir(A(ij).name);
+                        for ji = 1:length(B)
+                            if (strfind(B(ji).name,options.textFileName) > 0) & (strfind(B(ji).name,'.txt') > 0)
+                            FName1 = append(A(ij).name,'/',B(ji).name);
+                            File1 = fopen(FName1);
+                            Qa = textscan(File1,'%s',300);
+                            P = char(Qa{1});
+                            [~,Wp] = size(P);
+                            R = find((sum(P == options.startValue,2) == Wp) == 1)-1;
+                            R = max(R);
+                            fclose(File1);
+                            end
+                        end
+                    end
+                    A(ij).name
+                    File1 = fopen(FName1);
+                    Qa = textscan(File1,'%s',R);
+                    P = char(Qa{1});
+                    N = size(P,1)-find((sum(P == 'X(s)                   ',2) == Wp))+1;
+                    C = textscan(File1,'%f',Inf);
+                    Aq = C{1,1};
+                    fclose(File1);
+                    Time = Aq(1:N:end);
+                    tB = sum(Time <= options.endTime);
+                    if options.firstChannelForce
+                        Force = detrend(Aq(2:N:end));
+                        ForceTemp(:,u) = Force(1:tB);
+                        M = 3;
+                    else
+                        M = 2;
+                    end
+                    for vp = M:N
+                        AT = detrend(Aq(vp:N:end));
+                        AccTemp(:,vp-2,u) = AT(1:tB);
+                    end
+                    u = u+1;
+                end
+            end
+            Time = Time(1:tB);
+
+            % Sort the runs by the applied force if desired
+            if options.forceSorting
+                clear Force
+                MaxForces = max(abs(ForceTemp));
+                Force = 0*ForceTemp;
+                Acc = 0*AccTemp;
+                Sortu = [(1:u-1)' MaxForces'];
+                Sortu = sortrows(Sortu,2);
+                SortOrder = zeros(length(Sortu),2);
+                for i = 1:u-1
+                    SortOrder(i,:) = [i Sortu(i,1)];
+                    Force(:,i) = ForceTemp(:,Sortu(i,1));
+                    Acc(:,:,i) = detrend(AccTemp(:,:,Sortu(i,1)));
+                    
+                end
+                Data.SortOrder = SortOrder;
+            else
+                Force = ForceTemp;
+                Acc = AccTemp;
+            end
+
+            t = Time;
+            dt = t(2)-t(1);
+            Fs = 1/dt;
+            Fnyq = Fs/2;
+            Fc = options.cutOffFreq/Fnyq;
+            [b,a] = butter(options.order,Fc,'high');
+
+            Data.MaxForce = max(abs(Force))';
+            Data.Force = Force;
+            Data.Time = Time;
+            Data.Acc = Acc;
+            Data.Vel = filtfilt(b,a,cumtrapz(t,Data.Acc));
+            Data.Disp = filtfilt(b,a,cumtrapz(t,Data.Vel));
+            Data.Order = options.order;
+            Data.CutOffFreq = options.cutOffFreq;
+            Data.TimeEnd = Data.Time(end);
+
+            save('AllData_Processed.mat','Data','-v7.3')
         end
 
         % Compute FFT or FRF

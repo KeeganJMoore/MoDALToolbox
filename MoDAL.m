@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.0";
+        Version = "1.3.1";
     end
 
     methods(Static)
@@ -39,6 +39,10 @@ classdef MoDAL
             if ~isfile(destination3); websave(destination3,url2); end
             if ~isfile(destination4); websave(destination4,url3); end
             if ~isfile(destination5); websave(destination5,url4); end
+
+            if ~isfolder(userpath)
+                mkdir(userpath)
+            end
 
             destination = fullfile([userpath '/'],'startup.m');
 

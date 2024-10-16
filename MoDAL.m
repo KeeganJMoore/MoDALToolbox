@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.4";
+        Version = "1.3.5";
     end
 
     methods(Static)
@@ -365,6 +365,11 @@ classdef MoDAL
             %         Order: 3
             %    CutOffFreq: 3
             %       TimeEnd: 60
+            %
+            % where the first dimension represents time, the second dimension is the channel, and
+            % the third dimension represents each run. For the struct above, Data.Acc contains a 3D
+            % matrix contains 16 accelerations (channels) measured for 2498560 time units for 3
+            % different runs (measurement cases). 
 
 
             arguments

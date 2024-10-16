@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.2";
+        Version = "1.3.3";
     end
 
     methods(Static)
@@ -8,7 +8,7 @@ classdef MoDAL
         function Help
             fprintf('\nThis class includes a collection of plotting codes often used by MoDAL members.\n\n')
             fprintf('Enter "MoDAL.Install" into the command window to install this class.\n\n')
-            fprintf('For help contact Professor Moore at kmoore@unl.edu.\n')
+            fprintf('For help contact Professor Moore at kmoore@gatech.edu.\n')
 
             methods(MoDAL)
         end

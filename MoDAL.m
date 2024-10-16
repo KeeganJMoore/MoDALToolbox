@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.3";
+        Version = "1.3.4";
     end
 
     methods(Static)
@@ -27,7 +27,7 @@ classdef MoDAL
             filename4 = 'emdc_fix.m';
             filename5 = 'emdc_fix.mexmaca64';
             source1 = fullfile(p1,filename1);
-            
+
             if ~isfolder(userpath)
                 mkdir(userpath)
             end
@@ -294,30 +294,24 @@ classdef MoDAL
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % Process Recordings Output by Crystal Instruments Software
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            % This code loads the data stored inside the Run folders. Do not remove the
-            % text files from the Run folders.
+            % This code loads the data stored inside the Recording folder
+            % obtained from running the script "MoveRecFiles.bat".
             %
             %
             % Inputs
             % ------
             % No inputs are required, but assumptions are made about the
-            % folder and file names. 
+            % folder and file names.
+            %
             % Optional Inputs
             % ---------------
-            % 
-            % textFileName - A repeated portion of name of the recording 
+            %
+            % textFileName - A repeated portion of name of the recording
             %                files that you are importing. The default is
-            %                "REC". The code searches for files that contain
-            %                the textFileName and ".txt", such that it accounts
-            %                for the incrementation that the CI software
-            %                applies to the recording file names.
-            % folderName – A repeated portion of the name of the folders
-            %              that contain the recording files. The default is
-            %              "Run". The code searches all folders that
-            %              contain folderName in their names for files that
-            %              contain the textFileName and ".txt". Thus, it
-            %              accounts for the incrementation that the CI
-            %              software applies to the runs.
+            %                "REC_Run". The code searches for files that contain
+            %                the textFileName and ".txt".`
+            % folderName – The name of the folder that contains the recording
+            %              files. The default is "Recordings".
             % cutOffFreq - The cutoff frequency used for the high-pass
             %              filter applied to the integrated velocities and
             %              displacements. Default value is 3 Hz.
@@ -354,11 +348,11 @@ classdef MoDAL
             % Outputs
             % -------
             % This code produces no explicit output. Instead, the code places the processed data
-            % into a struct called "Data" and saves that into a .mat file called 
+            % into a struct called "Data" and saves that into a .mat file called
             % "AllData_Processed.mat". The struct "Data" contains all of the processed data and
             % information regarding the filter. For example,
             %
-            % Data = 
+            % Data =
             %
             %  struct with fields:
             %
@@ -374,8 +368,8 @@ classdef MoDAL
 
 
             arguments
-                options.textFileName string = 'REC'
-                options.folderName string = 'Run'
+                options.textFileName string = 'REC_Run'
+                options.folderName string = 'Recordings'
                 options.cutOffFreq double = 3;
                 options.order double = 3;
                 options.endTime double = 1e5;
@@ -388,44 +382,45 @@ classdef MoDAL
             for ij = 1:length(A)
                 if strfind(A(ij).name,'Processed') > 0
                 elseif strfind(A(ij).name,'.mat') > 0
-                elseif strfind(A(ij).name,'Run') > 0
-                    if u == 1
-                        B = dir(A(ij).name);
-                        for ji = 1:length(B)
-                            if (strfind(B(ji).name,options.textFileName) > 0) & (strfind(B(ji).name,'.txt') > 0)
-                            FName1 = append(A(ij).name,'/',B(ji).name);
-                            File1 = fopen(FName1);
-                            Qa = textscan(File1,'%s',300);
-                            P = char(Qa{1});
-                            [~,Wp] = size(P);
-                            R = find((sum(P == options.startValue,2) == Wp) == 1)-1;
-                            R = max(R);
-                            fclose(File1);
+                elseif strfind(A(ij).name,options.folderName) > 0
+                    B = dir(A(ij).name);
+                    for ji = 1:length(B)
+                        if (strfind(B(ji).name,options.textFileName) > 0) & (strfind(B(ji).name,'.txt') > 0)
+                            B(ji).name
+                            if u == 1
+
+                                FName1 = append(A(ij).name,'/',B(ji).name);
+                                File1 = fopen(FName1);
+                                Qa = textscan(File1,'%s',300);
+                                P = char(Qa{1});
+                                [~,Wp] = size(P);
+                                R = find((sum(P == options.startValue,2) == Wp) == 1)-1;
+                                R = max(R);
+                                fclose(File1);
                             end
+                            File1 = fopen(FName1);
+                            Qa = textscan(File1,'%s',R);
+                            P = char(Qa{1});
+                            N = size(P,1)-find((sum(P == 'X(s)                   ',2) == Wp))+1;
+                            C = textscan(File1,'%f',Inf);
+                            Aq = C{1,1};
+                            fclose(File1);
+                            Time = Aq(1:N:end);
+                            tB = sum(Time <= options.endTime);
+                            if options.firstChannelForce
+                                Force = detrend(Aq(2:N:end));
+                                ForceTemp(:,u) = Force(1:tB);
+                                M = 3;
+                            else
+                                M = 2;
+                            end
+                            for vp = M:N
+                                AT = detrend(Aq(vp:N:end));
+                                AccTemp(:,vp-2,u) = AT(1:tB);
+                            end
+                            u = u+1;
                         end
                     end
-                    A(ij).name
-                    File1 = fopen(FName1);
-                    Qa = textscan(File1,'%s',R);
-                    P = char(Qa{1});
-                    N = size(P,1)-find((sum(P == 'X(s)                   ',2) == Wp))+1;
-                    C = textscan(File1,'%f',Inf);
-                    Aq = C{1,1};
-                    fclose(File1);
-                    Time = Aq(1:N:end);
-                    tB = sum(Time <= options.endTime);
-                    if options.firstChannelForce
-                        Force = detrend(Aq(2:N:end));
-                        ForceTemp(:,u) = Force(1:tB);
-                        M = 3;
-                    else
-                        M = 2;
-                    end
-                    for vp = M:N
-                        AT = detrend(Aq(vp:N:end));
-                        AccTemp(:,vp-2,u) = AT(1:tB);
-                    end
-                    u = u+1;
                 end
             end
             Time = Time(1:tB);
@@ -443,7 +438,7 @@ classdef MoDAL
                     SortOrder(i,:) = [i Sortu(i,1)];
                     Force(:,i) = ForceTemp(:,Sortu(i,1));
                     Acc(:,:,i) = detrend(AccTemp(:,:,Sortu(i,1)));
-                    
+
                 end
                 Data.SortOrder = SortOrder;
             else
@@ -1112,7 +1107,7 @@ classdef MoDAL
             %             value.
             % timeEnd - Sets the maximum xlimit for time plots to this
             %           value.
-            % tsLim - Sets the ylimit to [-tsLim, tsLim] if only a single 
+            % tsLim - Sets the ylimit to [-tsLim, tsLim] if only a single
             %         value is provided or to [tsLim(1) tsLim(2)] if two are
             %         provided.
             % fontSize - Sets the font size to this value.
@@ -1886,9 +1881,9 @@ classdef MoDAL
             [x_mirror,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd] = ...
                 MoDAL.MirrorSignal(time,signal,options.mirrori, ...
                 options.mirrorf,options.chp1,options.chp2);
-            
+
             signal = x_mirror;
-        
+
             Fo = options.motherWaveletFreq;
             dt = time(2)-time(1);
             Fs = 1/dt;
@@ -2017,7 +2012,7 @@ classdef MoDAL
             % imffkip       =>   Amplitude [kip]
             % phase         =>   Phase [rad]
             % phasevel      =>   Phase Vel. [rad/s]
-            
+
             if nargin == 1
                 switch lower(Label)
                     case 'disp'
@@ -3218,25 +3213,25 @@ classdef MoDAL
         end
 
         function HideX
-                % Extract axes from current figure
-                Ax = gcf().Children(strcmp(get(gcf().Children,'type'),'axes'));
-                switch length(Ax)
-                    case 3
-                        Ax3 = Ax(3);
-                        Ax2 = Ax(2);
-                        Ax1 = Ax(1);
-                        Ax3.XTickLabel = {''};
-                        Ax3.XLabel = xlabel('');
-                        Ax3.Position(4) = 0.24;
-                        Ax2.XTickLabel = {''};
-                        Ax2.XLabel = xlabel('');
-                        Ax2.Position(4) = 0.24;
-                        Ax1.Position(4) = 0.24;
-                        Ax1.XLabel = xlabel('Time [s]');
-                    case 2
-                        Ax(2).XTickLabel = '';
-                        Ax(2).XLabel = xlabel('');
-                end
+            % Extract axes from current figure
+            Ax = gcf().Children(strcmp(get(gcf().Children,'type'),'axes'));
+            switch length(Ax)
+                case 3
+                    Ax3 = Ax(3);
+                    Ax2 = Ax(2);
+                    Ax1 = Ax(1);
+                    Ax3.XTickLabel = {''};
+                    Ax3.XLabel = xlabel('');
+                    Ax3.Position(4) = 0.24;
+                    Ax2.XTickLabel = {''};
+                    Ax2.XLabel = xlabel('');
+                    Ax2.Position(4) = 0.24;
+                    Ax1.Position(4) = 0.24;
+                    Ax1.XLabel = xlabel('Time [s]');
+                case 2
+                    Ax(2).XTickLabel = '';
+                    Ax(2).XLabel = xlabel('');
+            end
         end
 
         function [x_mirror, t_mirror] = MirrorImgSigOIni(t, x)

@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.4.1";
+        Version = "1.3.4.2";
     end
 
     methods(Static)
@@ -373,7 +373,7 @@ classdef MoDAL
 
 
             arguments
-                options.textFileName string = 'REC_Run'
+                options.textFileName string = 'REC'
                 options.folderName string = 'Recordings'
                 options.cutOffFreq double = 3;
                 options.order double = 3;
@@ -392,9 +392,8 @@ classdef MoDAL
                     for ji = 1:length(B)
                         if (strfind(B(ji).name,options.textFileName) > 0) & (strfind(B(ji).name,'.txt') > 0)
                             B(ji).name
+                            FName1 = append(A(ij).name,'/',B(ji).name);
                             if u == 1
-
-                                FName1 = append(A(ij).name,'/',B(ji).name);
                                 File1 = fopen(FName1);
                                 Qa = textscan(File1,'%s',300);
                                 P = char(Qa{1});

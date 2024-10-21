@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.4.3";
+        Version = "1.3.4.4";
     end
 
     methods(Static)
@@ -143,6 +143,7 @@ classdef MoDAL
             %              nonDim overrides this option.
             % timeUnits - character vector that specifies the time units.
             %             nonDim overrides this option.
+            % title - Adds a title to the main plot.
             arguments
                 time (:,1) double
                 force (:,1) double
@@ -152,6 +153,7 @@ classdef MoDAL
                 options.forceUnits char = 'N'
                 options.timeUnits char = "s"
                 options.fontSize = 12;
+                options.title string = '';
             end
             tStartSpecified = 1;
             tEndSpecified = 1;
@@ -186,6 +188,7 @@ classdef MoDAL
             xlim([time(1) time(end)])
             ylim(1.1*[min(force) max(force)])
             set(gca,'FontSize',options.fontSize)
+            title(options.title)
 
             p2 = axes;
             p2.Position = [0.3 0.35 0.55 0.5];
@@ -194,6 +197,7 @@ classdef MoDAL
             annotation('Arrow','Position',[0.1732,0.2363,0.0786,0.0620]);
             title(sprintf('Max Amplitude = %g %s',round(max(abs(force))),options.forceUnits))
             set(gca,'FontSize',options.fontSize)
+
 
         end
 

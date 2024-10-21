@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.4.2";
+        Version = "1.3.4.3";
     end
 
     methods(Static)
@@ -381,6 +381,7 @@ classdef MoDAL
                 options.firstChannelForce logical = 1;
                 options.forceSorting logical = 1;
                 options.startValue char = '0.00000000E+000        ';
+                options.forceFilter logical = 0;
             end
             A = dir;
             u = 1;
@@ -450,6 +451,8 @@ classdef MoDAL
                 Acc = AccTemp;
             end
 
+        
+
             t = Time;
             dt = t(2)-t(1);
             Fs = 1/dt;
@@ -466,6 +469,12 @@ classdef MoDAL
             Data.Order = options.order;
             Data.CutOffFreq = options.cutOffFreq;
             Data.TimeEnd = Data.Time(end);
+
+            if options.forceFilter
+                Fc = 16384/Fnyq;
+                [b,a] = butter(3,Fc,'low');
+                Data.Force = filtfilt(b,a,Data.Force);
+            end
 
             save('AllData_Processed.mat','Data','-v7.3')
         end

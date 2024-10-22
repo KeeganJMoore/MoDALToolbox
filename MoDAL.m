@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.4.4";
+        Version = "1.3.4.5";
     end
 
     methods(Static)
@@ -348,6 +348,11 @@ classdef MoDAL
             %              beginning of the signal, but they will need
             %              input the precise time that they want to start
             %              at. In general, this value should be left alone.
+            % forceFilter – This filters the applied force down to 16384 Hz. 
+            %               Default value is 0, which is off.
+            % noSave – Turns off saving of the Data struct. Useful for making 
+            %          changes to the data set before saving it. Default value
+            %          is 0, which enables saving.
             %
             % Outputs
             % -------
@@ -386,6 +391,7 @@ classdef MoDAL
                 options.forceSorting logical = 1;
                 options.startValue char = '0.00000000E+000        ';
                 options.forceFilter logical = 0;
+                options.noSave logical = 0;
             end
             A = dir;
             u = 1;
@@ -479,8 +485,9 @@ classdef MoDAL
                 [b,a] = butter(3,Fc,'low');
                 Data.Force = filtfilt(b,a,Data.Force);
             end
-
-            save('AllData_Processed.mat','Data','-v7.3')
+            if ~options.noSave
+                save('AllData_Processed.mat','Data','-v7.3')
+            end
         end
 
         % Compute FFT or FRF

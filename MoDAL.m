@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.4.5";
+        Version = "1.3.4.6";
     end
 
     methods(Static)
@@ -410,7 +410,7 @@ classdef MoDAL
                                 P = char(Qa{1});
                                 [~,Wp] = size(P);
                                 R = find((sum(P == options.startValue,2) == Wp) == 1)-1;
-                                R = max(R);
+                                R = R(2);
                                 fclose(File1);
                             end
                             File1 = fopen(FName1);

@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.4.6";
+        Version = "1.3.5.1";
     end
 
     methods(Static)
@@ -1149,6 +1149,7 @@ classdef MoDAL
             %            spectrum. Default option is MoDAL.UnbiasedOneMinusPink.
             % legends - 2x1 cell containing two strings that describe
             %           signal 1 and signal 2, respectively.
+            % legendsOpt - Cell containing options for a legend.
             % wtPower - Raises the WT spectrum to this power. Default
             %           option is 1.
             % title - Adds title to the time series plot. Default is no
@@ -1177,7 +1178,7 @@ classdef MoDAL
                 options.mirrorf string = 'e';
                 options.colorMap double = MoDAL.UnbiasedOneMinusPink;
                 options.legends cell = {'Signal 1','Signal 2'};
-                options.legendsLoc string = 'northeast';
+                options.legendsOpt cell = {'Location','northeast','orientation','horizontal'};
                 options.wtPower double = 1;
                 options.title string = '';
                 options.hideX double = 0;
@@ -1193,7 +1194,7 @@ classdef MoDAL
             MoDAL.TSPlot(time2,signal2,color=options.secondColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
                 tsLim=options.tsLim,linestyle=options.secondLineStyle)
-            legend(options.legends,'Location',options.legendsLoc,'orientation','horizontal')
+            legend(options.legends,options.legendsOpt)
             title(options.title)
 
             % Compute Wavelet Transforms
@@ -1271,6 +1272,7 @@ classdef MoDAL
             %            spectrum. Default option is MoDAL.UnbiasedOneMinusPink.
             % legends - 2x1 cell containing two strings that describe
             %           signal 1 and signal 2, respectively.
+            % legendsOpt - Cell containing options for a legend.
             % wtPower - Raises the WT spectrum to this power. Default
             %           option is 1.
             % title - Adds title to the time series plot. Default is no
@@ -1299,7 +1301,7 @@ classdef MoDAL
                 options.mirrorf string = 'e';
                 options.colorMap double = MoDAL.UnbiasedOneMinusPink;
                 options.legends cell = {'Signal 1','Signal 2'};
-                options.legendsLoc string = 'northeast';
+                options.legendsOpt cell = {'Location','northeast','orientation','horizontal'};
                 options.wtPower double = 1;
                 options.title string = '';
                 options.hideX double = 0;
@@ -1324,7 +1326,7 @@ classdef MoDAL
             MoDAL.TSPlot(time2,signal2,color=options.secondColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
                 tsLim=options.tsLim,linestyle=options.secondLineStyle)
-            legend(options.legends,'Location',options.legendsLoc,'orientation','horizontal')
+            legend(options.legends,options.legendsOpt{:})
             title(options.title)
 
             % Compute Wavelet Transforms
@@ -1356,7 +1358,7 @@ classdef MoDAL
             hold on
             MoDAL.FTPlot(time2,signal2,minFreq,maxFreq,force=F2,color=options.secondColor, ...
                 label=options.label,fontSize=options.fontSize,linestyle=options.secondLineStyle)
-            legend(options.legends,'Location',options.legendsLoc,'orientation','horizontal')
+            legend(options.legends,options.legendsOpt)
             drawnow;
             S4.Position(2) = 0.12464;
             if options.hideX; MoDAL.HideX;end
@@ -1408,6 +1410,7 @@ classdef MoDAL
             %           be a string with either 'e', 'o', or 'none'.
             % legends - 2x1 cell containing two strings that describe
             %           signal 1 and signal 2, respectively.
+            % legendsOpt - Cell containing options for a legend.
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first two plots.
@@ -1432,7 +1435,7 @@ classdef MoDAL
                 options.mirrori string = 'e';
                 options.mirrorf string = 'e';
                 options.legends cell = {'Signal 1','Signal 2'};
-                options.legendsLoc string = 'northeast';
+                options.legendsOpt cell = {'Location','northeast','orientation','horizontal'};
                 options.title string = '';
                 options.hideX double = 0;
             end
@@ -1448,7 +1451,7 @@ classdef MoDAL
             MoDAL.TSPlot(time2,signal2,color=options.secondColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
                 tsLim=options.tsLim,linestyle=options.secondLineStyle)
-            legend(options.legends,'Location',options.legendsLoc,'orientation','horizontal')
+            legend(options.legends,options.legendsOpt{:})
             title(options.title)
 
             % Compute Wavelet Transforms
@@ -1469,8 +1472,7 @@ classdef MoDAL
             hold on
             MoDAL.MWTPlot(freq2,max(mods2),minFreq,maxFreq,color='c', ...
                 fontSize=options.fontSize,label=options.label)
-            legend(options.legends,'Location',options.legendsLoc, ...
-                'orientation','horizontal')
+            legend(options.legends,options.legendsOpt{:})
 
             if options.hideX; MoDAL.HideX;end
             drawnow;
@@ -1524,6 +1526,7 @@ classdef MoDAL
             %            spectrum. Default option is MoDAL.UnbiasedOneMinusPink.
             % legends - 2x1 cell containing two strings that describe
             %           signal 1 and signal 2, respectively.
+            % legendsOpt - Cell containing options for a legend.
             % wtPower - Raises the WT spectrum to this power. Default
             %           option is 1.
             % title - Adds title to the time series plot. Default is no
@@ -1551,7 +1554,7 @@ classdef MoDAL
                 options.mirrorf string = 'e';
                 options.colorMap double = MoDAL.UnbiasedOneMinusPink;
                 options.legends cell = {'Signal 1','Signal 2'};
-                options.legendsLoc string = 'northeast';
+                options.legendsOpt cell = {'Location','northeast','orientation','horizontal'};
                 options.wtPower double = 1;
                 options.title string = '';
                 options.hideX double = 0;
@@ -1566,7 +1569,7 @@ classdef MoDAL
             MoDAL.TSPlot(time2,signal2,color=options.secondColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
                 tsLim=options.tsLim,linestyle=options.secondLineStyle)
-            legend(options.legends,'Location',options.legendsLoc,'orientation','horizontal')
+            legend(options.legends,options.legendsOpt{:})
             title(options.title)
 
             % Compute Wavelet Transforms
@@ -1596,8 +1599,7 @@ classdef MoDAL
             hold on
             MoDAL.MWTPlot(freq2,max(mods2),minFreq,maxFreq,color=options.secondColor, ...
                 fontSize=options.fontSize,label=options.label)
-            legend(options.legends,'Location',options.legendsLoc, ...
-                'orientation','horizontal')
+            legend(options.legends,options.legendsOpt{:})
             drawnow;
             S4.Position(2) = 0.12464;
             if options.hideX; MoDAL.HideX;end
@@ -1648,15 +1650,13 @@ classdef MoDAL
             % mirrorf - Mirroring applied to the end of the signal. Even
             %           mirroring is the default option. Input should
             %           be a string with either 'e', 'o', or 'none'.
-            % colorMap - A colormap vector used for coloring the WT
-            %            spectrum. Default option is MoDAL.UnbiasedOneMinusPink.
             % legends - 2x1 cell containing two strings that describe
             %           signal 1 and signal 2, respectively.
-            % wtPower - Raises the WT spectrum to this power. Default
-            %           option is 1.
+            % legendsOpt - Cell containing options for a legend.
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first two plots.
+            % 
             arguments
                 time1 (:,1) double
                 signal1 (:,1) double
@@ -1675,7 +1675,7 @@ classdef MoDAL
                 options.secondLineStyle string = '-';
                 options.force double = [];
                 options.legends cell = {'Signal 1','Signal 2'};
-                options.legendsLoc string = 'northeast';
+                options.legendsOpt cell = {'Location','northeast','orientation','horizontal'};
                 options.title string = '';
                 options.hideX double = 0;
             end
@@ -1699,7 +1699,7 @@ classdef MoDAL
             MoDAL.TSPlot(time2,signal2,color=options.secondColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
                 tsLim=options.tsLim,linestyle=options.secondLineStyle)
-            legend(options.legends,'Location',options.legendsLoc,'orientation','horizontal')
+            legend(options.legends,options.legendsOpt{:})
             title(options.title)
 
             subplot(2,1,2);
@@ -1708,7 +1708,7 @@ classdef MoDAL
             hold on
             MoDAL.FTPlot(time2,signal2,minFreq,maxFreq,force=F2,color=options.secondColor, ...
                 label=options.label,fontSize=options.fontSize,linestyle=options.secondLineStyle)
-            legend(options.legends,'Location',options.legendsLoc,'orientation','horizontal')
+            legend(options.legends,options.legendsOpt{:})
             drawnow;
             if options.hideX; MoDAL.HideX;end
         end

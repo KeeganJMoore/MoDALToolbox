@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.5.1";
+        Version = "1.3.6.1";
     end
 
     methods(Static)
@@ -197,8 +197,6 @@ classdef MoDAL
             annotation('Arrow','Position',[0.1732,0.2363,0.0786,0.0620]);
             title(sprintf('Max Amplitude = %g %s',round(max(abs(force))),options.forceUnits))
             set(gca,'FontSize',options.fontSize)
-
-
         end
 
         function ProcessRecData(TextFileName,options)
@@ -214,7 +212,6 @@ classdef MoDAL
                 options.cutOffFreq double = 3;
                 options.order double = 3;
                 options.endTime double = 1e5;
-
             end
             A = dir;
             u = 1;
@@ -2242,8 +2239,8 @@ classdef MoDAL
             %
             % Copyright
             % ---------------------------------------------
-            % Copyright (c) Keegan J. Moore, 2023
-            % kmoore@unl.edu
+            % Copyright (c) Keegan J. Moore, 2024
+            % kmoore@gatech.edu
             %
             % Citations
             % ---------------------------------------------
@@ -2682,6 +2679,176 @@ classdef MoDAL
             end
         end
 
+
+        function [alpha,modal_par,R,P,Polos] = rfp(rec,omega,N)
+            arguments
+                rec (:,1) double
+                omega (:,1) double
+                N (1,1) double
+            end
+
+            %RFP Modal parameter estimation from frequency response function using
+            % rational fraction polynomial method.
+            %
+            % Syntax: [alpha,modal_par]=rfp(rec,omega,N)
+            %
+            % rec   = FRF measurement (receptance)
+            % omega = frequency range vector (rad/sec).
+            % N     = number of degrees of freedom.
+            % alpha = FRF generated (receptance).
+            % modal_par = Modal Parameters [freq,damp,Ci,Oi]:
+            %             freq = Natural frequencies (rad/sec)
+            %             damp = Damping ratio
+            %             Ci   = Amplitude modal constant
+            %             Oi   = Phase modal constant (degrees)
+            %
+            % Reference: Mark H.Richardson & David L.Formenti "Parameter Estimation
+            %           from Frequency Response Measurements Using Rational Fraction
+            %           Polynomials", 1ºIMAC Conference, Orlando, FL. November, 1982.
+            %**********************************************************************
+            %Chile, March 2002, Cristian Andrés Gutiérrez Acuña, crguti@icqmail.com
+            %**********************************************************************
+
+            [r,c]=size(omega);
+            if r<c
+            	omega=omega.'; %omega is now a column
+            end
+            [r,c]=size(rec);
+            if r<c
+            	rec=rec.';     %rec is now a column
+            end
+
+            nom_omega=max(omega);
+            omega=omega./nom_omega; %omega normalization
+
+            m=2*N-1; %number of polynomial terms in numerator
+            n=2*N;   %number of polynomial terms in denominator
+
+            %orthogonal function that calculates the orthogonal polynomials
+            [phimatrix,coeff_A] = MoDAL.orthogonal(rec,omega,1,m);
+            [thetamatrix,coeff_B] = MoDAL.orthogonal(rec,omega,2,n);
+
+            [~,c]=size(phimatrix);
+            Phi=phimatrix(:,1:c);     %phi matrix
+            [~,c]=size(thetamatrix);
+            Theta=thetamatrix(:,1:c); %theta matrix
+            T=sparse(diag(rec))*thetamatrix(:,1:c-1);
+            W=rec.*thetamatrix(:,c);
+            X=-2*real(Phi'*T);
+            G=2*real(Phi'*W);
+
+            d=-inv(eye(size(X))-X.'*X)*X.'*G;
+            C=G-X*d;   %{C} orthogonal numerator  polynomial coefficients
+            D=[d;1];   %{D} orthogonal denominator  polynomial coefficients
+
+            alpha = 0*omega;
+            for n=1:length(omega)
+                numer=sum(C.'.*Phi(n,:));
+                denom=sum(D.'.*Theta(n,:));
+                alpha(n)=numer/denom;
+            end
+
+            A=coeff_A*C;
+            [r,~]=size(A);
+            A=A(r:-1:1).'; %{A} standard numerator polynomial coefficients
+
+            B=coeff_B*D;
+            [r,~]=size(B);
+            B=B(r:-1:1).'; %{B} standard denominator polynomial coefficients
+
+            %calculation of the poles and residues
+            [R,P,~]=residue(A,B);
+            [r,~]=size(R);
+            % P(3) = P(3)+0.1+1i*0.1;
+            % P(4) = conj(P(3));
+            Residuos = zeros(length(r/2),1);
+            Polos = Residuos;
+            for n=1:(r/2)
+                Residuos(n,1)=R(2*n-1);
+                Polos(n,1)=P(2*n-1);
+            end
+            [r,~]=size(Residuos);
+            Residuos=Residuos(r:-1:1)*nom_omega; %residues
+            Polos=Polos(r:-1:1)*nom_omega;       %poles
+            freq=abs(Polos);                 %Natural frequencies (rad/sec)
+            damp=-real(Polos)./abs(Polos);   %Damping ratios
+
+            Ai=-2*(real(Residuos).*real(Polos)+imag(Residuos).*imag(Polos));
+            Bi=2*real(Residuos);
+            const_modal=complex(Ai,abs(Polos).*Bi);
+        	Ci=abs(const_modal);             %Magnitude modal constant
+            Oi=angle(const_modal).*(180/pi);   %Phase modal constant (degrees)
+
+            modal_par=[freq, damp, Ci, Oi];    %Modal Parameters
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        end
+
+        function [P,coeff]=orthogonal(rec,omega,phitheta,kmax)
+
+            %ORTHOGONAL Orthogonal polynomials required for rational fraction
+            % polynomials method. (This code was written to be used with rfp.m)
+            %
+            % Syntax: [P,coeff]=orthogonal(rec,omega,phitheta,kmax)
+            %
+            % rec      = FRF measurement (receptance).
+            % omega    = frequency range vector (rad/sec).
+            % phitheta = weighting function (must be 1 for phi matrix or 2 for
+            %            theta matrix).
+            % kmax     = degree of the polynomial.
+            % P        = matrix of the orthogonal polynomials evaluated at the
+            %            frequencies.
+            % coeff    = matrix used to transform between the orthogonal polynomial
+            %            coefficients and the standard polynomial.
+            %
+            % Reference: Mark H.Richardson & David L.Formenti "Parameter Estimation
+            %           from Frequency Response Measurements Using Rational Fraction
+            %           Polynomials", 1ºIMAC Conference, Orlando, FL. November, 1982.
+            %**********************************************************************
+            %Chile, March 2002, Cristian Andrés Gutiérrez Acuña, crguti@icqmail.com
+            %**********************************************************************
+            if phitheta==1
+            	q=ones(size(omega)); %weighting function for phi matrix
+            elseif phitheta==2
+            	q=(abs(rec)).^2;     %weighting function for theta matrix
+            else
+            	error('phitheta must be 1 or 2.')
+            end
+
+            R_minus1=zeros(size(omega));
+            R_0=1/sqrt(2*sum(q)).*ones(size(omega));
+            R=[R_minus1,R_0];    %polynomials -1 and 0.
+            coeff=zeros(kmax+1,kmax+2);
+            coeff(1,2)=1/sqrt(2*sum(q));
+            % size(omega)
+            % size(R)
+            % size(q)
+            % kmax
+            %generating orthogonal polynomials matrix and transform matrix
+            for k=1:kmax
+            	Vkm1=2*sum(omega.*R(:,k+1).*R(:,k).*q);
+            	Sk=omega.*R(:,k+1)-Vkm1*R(:,k);
+            	Dk=sqrt(2*sum((Sk.^2).*q));
+            	R=[R,(Sk/Dk)];
+            	coeff(:,k+2)=-Vkm1*coeff(:,k);
+            	coeff(2:k+1,k+2)=coeff(2:k+1,k+2)+coeff(1:k,k+1);
+                coeff(:,k+2)=coeff(:,k+2)/Dk;
+            end
+
+            R=R(:,2:kmax+2);         %orthogonal polynomials matrix
+            coeff=coeff(:,2:kmax+2); %transform matrix
+
+            %make complex by multiplying by i^k
+            i=sqrt(-1);
+            P = zeros(size(R,1),kmax+1);
+            jk = zeros(1,kmax+1);
+            for k = 0:kmax
+                P(:,k+1)=R(:,k+1)*i^k; %complex orthogonal polynomials matrix
+                jk(1,k+1)=i^k;
+            end
+            coeff=(jk'*jk).*coeff;    %complex transform matrix
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        end
+
     end
 
     properties (Constant,Access=private)
@@ -2942,6 +3109,8 @@ classdef MoDAL
             0.0036905    0.0039216    0.0039216;
             0            0            0];
     end
+
+    
 
     %%%%% Static Private methods
     methods (Static,Access=private)

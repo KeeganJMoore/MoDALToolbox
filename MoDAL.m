@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.6.1";
+        Version = "1.3.6.2";
     end
 
     methods(Static)
@@ -1191,7 +1191,7 @@ classdef MoDAL
             MoDAL.TSPlot(time2,signal2,color=options.secondColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
                 tsLim=options.tsLim,linestyle=options.secondLineStyle)
-            legend(options.legends,options.legendsOpt)
+            legend(options.legends,options.legendsOpt{:})
             title(options.title)
 
             % Compute Wavelet Transforms
@@ -1355,7 +1355,7 @@ classdef MoDAL
             hold on
             MoDAL.FTPlot(time2,signal2,minFreq,maxFreq,force=F2,color=options.secondColor, ...
                 label=options.label,fontSize=options.fontSize,linestyle=options.secondLineStyle)
-            legend(options.legends,options.legendsOpt)
+            legend(options.legends,options.legendsOpt{:})
             drawnow;
             S4.Position(2) = 0.12464;
             if options.hideX; MoDAL.HideX;end

@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.7.1";
+        Version = "1.3.7.2";
     end
 
     methods(Static)
@@ -1711,7 +1711,8 @@ classdef MoDAL
         end
 
         function PlotTSWT_ZoomWT(time1,signal1,minFreq,maxFreq,zoomMinFreq,zoomMaxFreq,options)
-            % Plots the time series and wavelet transform of two signals.
+            % Plots the time series and wavelet transform of a signal. Provides a zoomed-in view of
+            % the wavelet transform.
             %
             % Required Inputs
             % ---------------------------------------------
@@ -1794,11 +1795,6 @@ classdef MoDAL
             MoDAL.TSPlot(time1,signal1,color=options.firstColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
                 tsLim=options.tsLim,linestyle=options.firstLineStyle)
-            hold on
-            MoDAL.TSPlot(time2,signal2,color=options.secondColor,fontSize=options.fontSize, ...
-                label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
-                tsLim=options.tsLim,linestyle=options.secondLineStyle)
-            legend(options.legends,options.legendsOpt{:})
             title(options.title)
 
             % Compute Wavelet Transforms

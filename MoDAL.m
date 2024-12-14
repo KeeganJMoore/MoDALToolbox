@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.7.2";
+        Version = "1.3.7.3";
     end
 
     methods(Static)
@@ -1710,7 +1710,7 @@ classdef MoDAL
             if options.hideX; MoDAL.HideX;end
         end
 
-        function PlotTSWT_ZoomWT(time1,signal1,minFreq,maxFreq,zoomMinFreq,zoomMaxFreq,options)
+        function PlotTSWT_ZoomWT(time,signal,minFreq,maxFreq,zoomMinFreq,zoomMaxFreq,options)
             % Plots the time series and wavelet transform of a signal. Provides a zoomed-in view of
             % the wavelet transform.
             %
@@ -1763,8 +1763,8 @@ classdef MoDAL
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first two plots.
             arguments
-                time1 (:,1) double
-                signal1 (:,1) double
+                time (:,1) double
+                signal (:,1) double
                 minFreq double
                 maxFreq double
                 zoomMinFreq double
@@ -1772,8 +1772,8 @@ classdef MoDAL
                 options.numFreq double = 100;
                 options.motherWaveletFreq double = 2;
                 options.label string = '';
-                options.timeStart double = min(time1(1),time2(1));
-                options.timeEnd double = max(time1(end),time2(end));
+                options.timeStart double = time(1);
+                options.timeEnd double = time(end);
                 options.tsLim double = nan;
                 options.fontSize double = 12;
                 options.firstColor string = 'k';
@@ -1792,15 +1792,15 @@ classdef MoDAL
             figure
             % Plot Time Series
             subplot(3,1,1);
-            MoDAL.TSPlot(time1,signal1,color=options.firstColor,fontSize=options.fontSize, ...
+            MoDAL.TSPlot(time,signal,color=options.firstColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
                 tsLim=options.tsLim,linestyle=options.firstLineStyle)
             title(options.title)
 
             % Compute Wavelet Transforms
-            [freq1,mods1] = MoDAL.WaveletSignal(time1,signal1,minFreq,maxFreq, ...
+            [freq1,mods1] = MoDAL.WaveletSignal(time,signal,minFreq,maxFreq, ...
                 options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
-            [freq2,mods2] = MoDAL.WaveletSignal(time1,signal1,zoomMinFreq,zoomMaxFreq, ...
+            [freq2,mods2] = MoDAL.WaveletSignal(time,signal,zoomMinFreq,zoomMaxFreq, ...
                 options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
 
             % Normalize Wavelets
@@ -1810,14 +1810,12 @@ classdef MoDAL
 
             % Plot Wavelets
             subplot(3,1,2);
-            MoDAL.WTSpectraPlot(time1,freq1,mods1,options)
+            MoDAL.WTSpectraPlot(time,freq1,mods1,options)
             clim([0 1])
-            title(options.legends{1})
 
             subplot(3,1,3);
-            MoDAL.WTSpectraPlot(time1,freq2,mods2,options)
+            MoDAL.WTSpectraPlot(time,freq2,mods2,options)
             clim([0 1])
-            title(options.legends{2})
             if options.hideX; MoDAL.HideX;end
         end
 

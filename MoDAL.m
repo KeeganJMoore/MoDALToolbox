@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.7.3";
+        Version = "1.3.7.4";
     end
 
     methods(Static)
@@ -1969,6 +1969,19 @@ classdef MoDAL
 
         %%%%%%% Decomposition Routines %%%%%%%%
         function Mode = IFD(time,signal,lowerFreqs,upperFreqs)
+            arguments
+                time double
+                signal double
+                lowerFreqs double
+                upperFreqs double
+            end
+            if size(signal,1) < size(signal,2)
+                signal = signal';
+            end
+
+            cases = size(signal,2);
+                
+
             dt = time(2)-time(1);
 
             %FFT Parameters
@@ -1979,19 +1992,19 @@ classdef MoDAL
 
             % Compute FFT of x
             xFFT = fft(signal,L);
-
-            Mode = zeros(length(time),length(lowerFreqs));
-            for i = 1:length(lowerFreqs)
-                FA = sum(f <= lowerFreqs(i));
-                FB = sum(f <= upperFreqs(i));
-
-                F = zeros(L/2,1);
-                F(FA:FB) = 1;
-                F = [F;flipud(F)];
-                F = F(1:L);
-                fft_mode = F.*xFFT;
-                ModeS = ifft(fft_mode,L,'symmetric');
-                Mode(:,i) = ModeS(1:length(time));
+            Mode = zeros(length(time),length(lowerFreqs),cases);
+            for j = 1:cases
+                for i = 1:length(lowerFreqs)
+                    FA = sum(f <= lowerFreqs(i));
+                    FB = sum(f <= upperFreqs(i));
+                    F = zeros(L/2,1);
+                    F(FA:FB) = 1;
+                    F = [F;flipud(F)];
+                    F = F(1:L);
+                    fft_mode = F.*xFFT(:,j);
+                    ModeS = ifft(fft_mode,L,'symmetric');
+                    Mode(:,i,j) = ModeS(1:length(time));
+                end
             end
         end
 

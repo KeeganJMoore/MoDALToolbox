@@ -2410,7 +2410,7 @@ classdef MoDAL
             %                      Mirror.Chop1{2} = [0.2;0.2;0.2;0.2];
             %
             %                      where the first and second lines correspond to the first and second
-            %                      signals, respectively.
+            %                      signals.
             %
             %       Mirror.Chop2 - The same as Mirror.Chop1, except that it applies to the
             %                  end of the signal instead of the beginning.
@@ -2418,15 +2418,11 @@ classdef MoDAL
             %       Mirror.Ini - A cell that contains whether the even or odd mirroring should be
             %                    applied to the beginning of the signal. Each entry in the cell must
             %                    be a vector of 0s and 1s, where a value of 0 corresponds to odd
-            %                    mirroring a value of 1 corresponds to even mirroring. The length of
-            %                    the vector should match the number of characteristic frequencies
-            %                    where mirrorring will be applied for each signal. For example,
-            %                    
-            %                    Mirror.Ini{1} = [0;1;0];
-            %                    Mirror.Ini{2} = [0;0;1;0];
+            %                    mirroring 
+            % 
+            %                    odd mirroring and a value of 1 corresponds to even mirroring. The
+            %                    number of values in ea
             %
-            %                    where the first and second lines correspond to the first and second
-            %                    signals, respectively.
             %
             % Outputs
             % ---------------------------------------------
@@ -2451,7 +2447,7 @@ classdef MoDAL
             % minFreq = 5;
             % maxFreq = 20;
             % charFreq{1} = [15;10];
-            % Mirror.On = 0; % Turn off mirroring
+            % Mirror.On = 0;
             % IMF = MoDAL.WBEMD(time,signal,minFreq,maxFreq,charFreq,"Mirror",Mirror);
             %
             % MoDAL.PlotTSWT_Compare(time,IMF{1}(:,2),time,IMF{1}(:,1),5,20,'legends',{'IMF 1','IMF 2'}
@@ -2484,7 +2480,14 @@ classdef MoDAL
             % K.J. Moore, M. Kurt, M. Eriten, D.M. McFarland, L.A. Bergman, A.F.
             % Vakakis, "Wavelet-Bounded Empirical Mode Decomposition for Vibro-Impact
             % Analysis," Nonlinear Dynamics, 93(3):1559-1577, 2018.
-            % https://doi.org/10.1007/s11071-018-4276-0           
+            % https://doi.org/10.1007/s11071-018-4276-0
+
+
+
+            % Mirroring is not fully implemented and will be added in the
+            % future. The list below is work in-progress.
+            %
+           
 
             arguments
                 time double

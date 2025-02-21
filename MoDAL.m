@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.8";
+        Version = "1.3.9";
     end
 
     methods(Static)
@@ -345,9 +345,9 @@ classdef MoDAL
             %              beginning of the signal, but they will need
             %              input the precise time that they want to start
             %              at. In general, this value should be left alone.
-            % forceFilter – This filters the applied force down to 16384 Hz. 
+            % forceFilter – This filters the applied force down to 16384 Hz.
             %               Default value is 0, which is off.
-            % noSave – Turns off saving of the Data struct. Useful for making 
+            % noSave – Turns off saving of the Data struct. Useful for making
             %          changes to the data set before saving it. Default value
             %          is 0, which enables saving.
             %
@@ -375,7 +375,7 @@ classdef MoDAL
             % where the first dimension represents time, the second dimension is the channel, and
             % the third dimension represents each run. For the struct above, Data.Acc contains a 3D
             % matrix contains 16 accelerations (channels) measured for 2498560 time units for 3
-            % different runs (measurement cases). 
+            % different runs (measurement cases).
 
 
             arguments
@@ -386,10 +386,14 @@ classdef MoDAL
                 options.endTime double = 1e5;
                 options.firstChannelForce logical = 1;
                 options.forceSorting logical = 1;
-                options.startValue char = '0.00000000E+000        ';
                 options.forceFilter logical = 0;
                 options.noSave logical = 0;
             end
+            forceChar = "Newton";
+            accChar = "m/s^2 ";
+            strainChar = "ε     ";
+            % velChar = "m/s   ";
+
             A = dir;
             u = 1;
             for ij = 1:length(A)
@@ -404,32 +408,28 @@ classdef MoDAL
                             if u == 1
                                 File1 = fopen(FName1);
                                 Qa = textscan(File1,'%s',300);
-                                P = char(Qa{1});
-                                [~,Wp] = size(P);
-                                R = find((sum(P == options.startValue,2) == Wp) == 1)-1;
-                                R = R(2);
+                                S1 = find(strcmp(Qa{:},'Unit:'),1,'last');
+                                S2 = find(strcmp(Qa{:},'X(s)'));
+                                Units = string(char(Qa{:}{S1+1:S2-1}));
                                 fclose(File1);
+
                             end
-                            File1 = fopen(FName1);
-                            Qa = textscan(File1,'%s',R);
-                            P = char(Qa{1});
-                            N = size(P,1)-find((sum(P == 'X(s)                   ',2) == Wp))+1;
-                            C = textscan(File1,'%f',Inf);
-                            Aq = C{1,1};
-                            fclose(File1);
-                            Time = Aq(1:N:end);
+                            dataMat = readmatrix(FName1);
+                            Time = dataMat(:,1);
                             tB = sum(Time <= options.endTime);
-                            if options.firstChannelForce
-                                Force = detrend(Aq(2:N:end));
-                                ForceTemp(:,u) = Force(1:tB);
-                                M = 3;
-                            else
-                                M = 2;
-                            end
-                            for vp = M:N
-                                AT = detrend(Aq(vp:N:end));
-                                AccTemp(:,vp-2,u) = AT(1:tB);
-                            end
+                            dataMat = dataMat(:,2:end);
+
+                            strainCount = logical(count(Units,strainChar));
+                            accCount = logical(count(Units,accChar));
+                            
+                            forceCount = logical(count(Units,forceChar));
+                            ForceTemp(:,:,u) = detrend(dataMat(1:tB,forceCount));
+                            AccTemp(:,:,u) = detrend(dataMat(1:tB,accCount));
+                            StrainTemp(:,:,u) = dataMat(1:tB,strainCount);
+                            
+                            % VelTemp(:,:,u) = detrend(dataMat(1:tB,velCount));
+                            % velCount = logical(count(Units,velChar));
+
                             u = u+1;
                         end
                     end
@@ -439,40 +439,62 @@ classdef MoDAL
 
             % Sort the runs by the applied force if desired
             if options.forceSorting
-                clear Force
-                MaxForces = max(abs(ForceTemp));
-                Force = 0*ForceTemp;
-                Acc = 0*AccTemp;
-                Sortu = [(1:u-1)' MaxForces'];
-                Sortu = sortrows(Sortu,2);
-                SortOrder = zeros(length(Sortu),2);
-                for i = 1:u-1
-                    SortOrder(i,:) = [i Sortu(i,1)];
-                    Force(:,i) = ForceTemp(:,Sortu(i,1));
-                    Acc(:,:,i) = detrend(AccTemp(:,:,Sortu(i,1)));
-
+                if size(ForceTemp,2) == 1
+                    clear Force
+                    MaxForces = squeeze(max(abs(ForceTemp)));
+                    Force = 0*ForceTemp;
+                    Acc = 0*AccTemp;
+                    Strain = 0*StrainTemp;
+                    Sortu = [(1:u-1)' MaxForces];
+                    Sortu = sortrows(Sortu,2);
+                    SortOrder = zeros(length(Sortu),2);
+                    for i = 1:u-1
+                        SortOrder(i,:) = [i Sortu(i,1)];
+                        Force(:,:,i) = ForceTemp(:,:,Sortu(i,1));
+                        Acc(:,:,i) = AccTemp(:,:,Sortu(i,1));
+                        Strain(:,:,i) = StrainTemp(:,:,Sortu(i,1));
+                    end
+                    Data.SortOrder = SortOrder;
+                else
+                    warning('Multipe forces detected. Sorting is based on maximum of first force channel.')
+                    clear Force
+                    MaxForces = squeeze(max(abs(ForceTemp)));
+                    Force = 0*ForceTemp;
+                    Acc = 0*AccTemp;
+                    Strain = 0*StrainTemp;
+                    Sortu = [(1:u-1)' MaxForces(1,:)'];
+                    Sortu = sortrows(Sortu,2);
+                    SortOrder = zeros(length(Sortu),2);
+                    for i = 1:u-1
+                        SortOrder(i,:) = [i Sortu(i,1)];
+                        Force(:,:,i) = ForceTemp(:,:,Sortu(i,1));
+                        Acc(:,:,i) = AccTemp(:,:,Sortu(i,1));
+                        Strain(:,:,i) = StrainTemp(:,:,Sortu(i,1));
+                    end
+                    Data.SortOrder = SortOrder;
                 end
-                Data.SortOrder = SortOrder;
             else
                 Force = ForceTemp;
                 Acc = AccTemp;
+                Strain = StrainTemp;
             end
+            Force = squeeze(Force);
+            Acc = squeeze(Acc);
+            Strain = squeeze(Strain);
 
-        
-
-            t = Time;
-            dt = t(2)-t(1);
+            dt = Time(2)-Time(1);
             Fs = 1/dt;
             Fnyq = Fs/2;
             Fc = options.cutOffFreq/Fnyq;
             [b,a] = butter(options.order,Fc,'high');
 
-            Data.MaxForce = max(abs(Force))';
+            Data.MaxForce = squeeze(max(abs(Force)))';
             Data.Force = Force;
             Data.Time = Time;
             Data.Acc = Acc;
-            Data.Vel = filtfilt(b,a,cumtrapz(t,Data.Acc));
-            Data.Disp = filtfilt(b,a,cumtrapz(t,Data.Vel));
+            Data.Strain = Strain;
+            Data.Vel = filtfilt(b,a,cumtrapz(Time,Data.Acc));
+            Data.Disp = filtfilt(b,a,cumtrapz(Time,Data.Vel));
             Data.Order = options.order;
             Data.CutOffFreq = options.cutOffFreq;
             Data.TimeEnd = Data.Time(end);
@@ -1217,7 +1239,7 @@ classdef MoDAL
             title(options.legends{2})
             if options.hideX; MoDAL.HideX;end
         end
-    
+
 
         function PlotTSWTFT_Compare(time1,signal1,time2,signal2,minFreq,maxFreq,options)
             % Plots the time series, wavelet transform, and FFT/FRF of two signals.
@@ -1653,7 +1675,7 @@ classdef MoDAL
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first two plots.
-            % 
+            %
             arguments
                 time1 (:,1) double
                 signal1 (:,1) double
@@ -1970,39 +1992,39 @@ classdef MoDAL
         %%%%%%% Decomposition Routines %%%%%%%%
         function Mode = IFD(time,signal,lowerFreqs,upperFreqs)
             % Decomposes a signal using the inverse Fourier decomposition into
-            % components corresponding to regions defined by 
+            % components corresponding to regions defined by
             % [lowerFreqs(i) upperFreqs(i)].
             %
             % Required Inputs
             % ---------------------------------------------
             % time = Time vector
             % signal = Vector or matrix containing the signal or signals to be decomposed.
-            % lowerFreqs - Lower bounds of each region stored as a vector or a cell. 
-            %              
-            %              Providing a vector causes all signals to be decomposed into the same 
-            %              signals whereas providing a cell allows one to decompose each signal 
-            %              into different components. 
-            % 
-            %              If a cell is provided, then the number of entries must match the number 
-            %              of signals and each entry must contain a vector of the lower bounds. If 
-            %              lowerFreqs is provided as a cell, then upperFreqs must be provided as a 
+            % lowerFreqs - Lower bounds of each region stored as a vector or a cell.
+            %
+            %              Providing a vector causes all signals to be decomposed into the same
+            %              signals whereas providing a cell allows one to decompose each signal
+            %              into different components.
+            %
+            %              If a cell is provided, then the number of entries must match the number
+            %              of signals and each entry must contain a vector of the lower bounds. If
+            %              lowerFreqs is provided as a cell, then upperFreqs must be provided as a
             %              cell of the same size with entries of the same size.
             %
-            % upperFreqs - Upper bounds of each region stored as a vector or a cell. 
+            % upperFreqs - Upper bounds of each region stored as a vector or a cell.
             %
-            %              Providing a vector causes all signals to be decomposed into the same 
-            %              signals whereas providing a cell allows one to decompose each signal 
-            %              into different components. 
-            % 
-            %              If a cell is provided, then the number of entries must match the number 
-            %              of signals and each entry must contain a vector of the upper bounds. If 
-            %              upperFreqs is provided as a cell, then upperFreqs must be provided as a 
+            %              Providing a vector causes all signals to be decomposed into the same
+            %              signals whereas providing a cell allows one to decompose each signal
+            %              into different components.
+            %
+            %              If a cell is provided, then the number of entries must match the number
+            %              of signals and each entry must contain a vector of the upper bounds. If
+            %              upperFreqs is provided as a cell, then upperFreqs must be provided as a
             %              cell of the same size with entries of the same size.
             %
             % Outputs
             % ---------------------------------------------
             % Mode = Matrix or cell containing the decomposed components from each signal.
-            %        
+            %
             %        If all signals are decomposed into the same
             %
             %
@@ -2010,14 +2032,14 @@ classdef MoDAL
             arguments
                 time (:,1) double
                 signal double
-                lowerFreqs 
-                upperFreqs 
+                lowerFreqs
+                upperFreqs
             end
-  
+
             if size(signal,1) < size(signal,2); signal = signal'; end
 
             cases = size(signal,2);
-            
+
             if iscell(lowerFreqs)
                 if ~iscell(upperFreqs)
                     error(['When the lower frequency bounds are provided as a cell, the upper' ...
@@ -2384,7 +2406,7 @@ classdef MoDAL
             % The inputs are dense and you should reach out to Prof. Moore (kmoore@gatech.edu) if
             % you are not familiar with mirroring. The default setting is for mirroring to be turned
             % off and not applied to the signal.
-            % 
+            %
             %   Mirror – A structure with the entries:
             %
             %       Mirror.On - Takes a value of 0 or 1, which indicate whether or not
@@ -2421,7 +2443,7 @@ classdef MoDAL
             %                    mirroring a value of 1 corresponds to even mirroring. The length of
             %                    the vector should match the number of characteristic frequencies
             %                    where mirrorring will be applied for each signal. For example,
-            %                    
+            %
             %                    Mirror.Ini{1} = [0;1;0];
             %                    Mirror.Ini{2} = [0;0;1;0];
             %
@@ -2484,7 +2506,7 @@ classdef MoDAL
             % K.J. Moore, M. Kurt, M. Eriten, D.M. McFarland, L.A. Bergman, A.F.
             % Vakakis, "Wavelet-Bounded Empirical Mode Decomposition for Vibro-Impact
             % Analysis," Nonlinear Dynamics, 93(3):1559-1577, 2018.
-            % https://doi.org/10.1007/s11071-018-4276-0           
+            % https://doi.org/10.1007/s11071-018-4276-0
 
             arguments
                 time double
@@ -2694,7 +2716,7 @@ classdef MoDAL
                         end
 
                         try
-              
+
                             [imf1,~] = emdc_fix(ti,X_emd+masksig,100,1);
                             [imf2,~] = emdc_fix(ti,X_emd-masksig,100,1);
 
@@ -2857,11 +2879,11 @@ classdef MoDAL
 
             [r,c]=size(omega);
             if r<c
-            	omega=omega.'; %omega is now a column
+                omega=omega.'; %omega is now a column
             end
             [r,c]=size(rec);
             if r<c
-            	rec=rec.';     %rec is now a column
+                rec=rec.';     %rec is now a column
             end
 
             nom_omega=max(omega);
@@ -2922,7 +2944,7 @@ classdef MoDAL
             Ai=-2*(real(Residuos).*real(Polos)+imag(Residuos).*imag(Polos));
             Bi=2*real(Residuos);
             const_modal=complex(Ai,abs(Polos).*Bi);
-        	Ci=abs(const_modal);             %Magnitude modal constant
+            Ci=abs(const_modal);             %Magnitude modal constant
             Oi=angle(const_modal).*(180/pi);   %Phase modal constant (degrees)
 
             modal_par=[freq, damp, Ci, Oi];    %Modal Parameters
@@ -2953,11 +2975,11 @@ classdef MoDAL
             %Chile, March 2002, Cristian Andrés Gutiérrez Acuña, crguti@icqmail.com
             %**********************************************************************
             if phitheta==1
-            	q=ones(size(omega)); %weighting function for phi matrix
+                q=ones(size(omega)); %weighting function for phi matrix
             elseif phitheta==2
-            	q=(abs(rec)).^2;     %weighting function for theta matrix
+                q=(abs(rec)).^2;     %weighting function for theta matrix
             else
-            	error('phitheta must be 1 or 2.')
+                error('phitheta must be 1 or 2.')
             end
 
             R_minus1=zeros(size(omega));
@@ -2971,12 +2993,12 @@ classdef MoDAL
             % kmax
             %generating orthogonal polynomials matrix and transform matrix
             for k=1:kmax
-            	Vkm1=2*sum(omega.*R(:,k+1).*R(:,k).*q);
-            	Sk=omega.*R(:,k+1)-Vkm1*R(:,k);
-            	Dk=sqrt(2*sum((Sk.^2).*q));
-            	R=[R,(Sk/Dk)];
-            	coeff(:,k+2)=-Vkm1*coeff(:,k);
-            	coeff(2:k+1,k+2)=coeff(2:k+1,k+2)+coeff(1:k,k+1);
+                Vkm1=2*sum(omega.*R(:,k+1).*R(:,k).*q);
+                Sk=omega.*R(:,k+1)-Vkm1*R(:,k);
+                Dk=sqrt(2*sum((Sk.^2).*q));
+                R=[R,(Sk/Dk)];
+                coeff(:,k+2)=-Vkm1*coeff(:,k);
+                coeff(2:k+1,k+2)=coeff(2:k+1,k+2)+coeff(1:k,k+1);
                 coeff(:,k+2)=coeff(:,k+2)/Dk;
             end
 
@@ -3256,7 +3278,7 @@ classdef MoDAL
             0            0            0];
     end
 
-    
+
 
     %%%%% Static Private methods
     methods (Static,Access=private)

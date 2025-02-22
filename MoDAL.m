@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.9";
+        Version = "1.3.9.1";
     end
 
     methods(Static)
@@ -388,6 +388,7 @@ classdef MoDAL
                 options.forceSorting logical = 1;
                 options.forceFilter logical = 0;
                 options.noSave logical = 0;
+                options.numHeaderLines double = 16;
             end
             forceChar = "Newton";
             accChar = "m/s^2 ";
@@ -414,7 +415,7 @@ classdef MoDAL
                                 fclose(File1);
 
                             end
-                            dataMat = readmatrix(FName1);
+                            dataMat = readmatrix(FName1,"NumHeaderLines",options.numHeaderLines);
                             Time = dataMat(:,1);
                             tB = sum(Time <= options.endTime);
                             dataMat = dataMat(:,2:end);
@@ -481,13 +482,11 @@ classdef MoDAL
             Force = squeeze(Force);
             Acc = squeeze(Acc);
             Strain = squeeze(Strain);
-
             dt = Time(2)-Time(1);
             Fs = 1/dt;
             Fnyq = Fs/2;
             Fc = options.cutOffFreq/Fnyq;
             [b,a] = butter(options.order,Fc,'high');
-
             Data.MaxForce = squeeze(max(abs(Force)))';
             Data.Force = Force;
             Data.Time = Time;

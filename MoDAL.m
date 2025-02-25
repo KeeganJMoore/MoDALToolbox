@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.9.1";
+        Version = "1.3.9.2";
     end
 
     methods(Static)
@@ -2414,8 +2414,8 @@ classdef MoDAL
             %       Mirror.Freq - A cell that indicates which characteristic frequencies
             %                     mirroring will be applied to. For example,
             %
-            %                    Mirror.FMirror{1} = [Fn;F2;F1];
-            %                    Mirror.FMirror{2} = [Gm;Gm-1;G3;G1];
+            %                    Mirror.Freq{1} = [Fn;F2;F1];
+            %                    Mirror.Freq{2} = [Gm;Gm-1;G3;G1];
             %
             %                    would result in mirroring being applied to the characteristic time
             %                    scales Fn, F2, and F1 for the first signal and Gm, Gm-1, G3, and G1 for
@@ -2542,7 +2542,7 @@ classdef MoDAL
                 end
 
                 if options.Mirror.On == 1
-                    fmirr = options.Mirror.FMirror{b};
+                    fmirr = options.Mirror.Freq{b};
                     chops1 = options.Mirror.Chop1{b};
                     chops2 = options.Mirror.Chop2{b};
                     mirrorIni = options.Mirror.Ini{b};

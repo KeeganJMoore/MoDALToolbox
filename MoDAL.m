@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.9.2";
+        Version = "1.3.9.3";
     end
 
     methods(Static)
@@ -350,6 +350,10 @@ classdef MoDAL
             % noSave – Turns off saving of the Data struct. Useful for making
             %          changes to the data set before saving it. Default value
             %          is 0, which enables saving.
+            % Detrend - Applies the detrend function to force and acceleration data.
+            %           Default is on.
+            % StrainDetrend – Applies the detrend function to strain data. The 
+            %                 Default is off. 
             %
             % Outputs
             % -------
@@ -389,6 +393,8 @@ classdef MoDAL
                 options.forceFilter logical = 0;
                 options.noSave logical = 0;
                 options.numHeaderLines double = 16;
+                options.Detrend logical = 1;
+                options.StrainDetrend logical = 0;
             end
             forceChar = "Newton";
             accChar = "m/s^2 ";
@@ -424,8 +430,8 @@ classdef MoDAL
                             accCount = logical(count(Units,accChar));
                             
                             forceCount = logical(count(Units,forceChar));
-                            ForceTemp(:,:,u) = detrend(dataMat(1:tB,forceCount));
-                            AccTemp(:,:,u) = detrend(dataMat(1:tB,accCount));
+                            ForceTemp(:,:,u) = dataMat(1:tB,forceCount);
+                            AccTemp(:,:,u) = dataMat(1:tB,accCount);
                             StrainTemp(:,:,u) = dataMat(1:tB,strainCount);
                             
                             % VelTemp(:,:,u) = detrend(dataMat(1:tB,velCount));
@@ -439,8 +445,8 @@ classdef MoDAL
             Time = Time(1:tB);
 
             % Sort the runs by the applied force if desired
-            if options.forceSorting
-                if size(ForceTemp,2) == 1
+            if sum(forceCount) == 1
+                if options.forceSorting
                     clear Force
                     MaxForces = squeeze(max(abs(ForceTemp)));
                     Force = 0*ForceTemp;
@@ -457,22 +463,9 @@ classdef MoDAL
                     end
                     Data.SortOrder = SortOrder;
                 else
-                    warning('Multipe forces detected. Sorting is based on maximum of first force channel.')
-                    clear Force
-                    MaxForces = squeeze(max(abs(ForceTemp)));
-                    Force = 0*ForceTemp;
-                    Acc = 0*AccTemp;
-                    Strain = 0*StrainTemp;
-                    Sortu = [(1:u-1)' MaxForces(1,:)'];
-                    Sortu = sortrows(Sortu,2);
-                    SortOrder = zeros(length(Sortu),2);
-                    for i = 1:u-1
-                        SortOrder(i,:) = [i Sortu(i,1)];
-                        Force(:,:,i) = ForceTemp(:,:,Sortu(i,1));
-                        Acc(:,:,i) = AccTemp(:,:,Sortu(i,1));
-                        Strain(:,:,i) = StrainTemp(:,:,Sortu(i,1));
-                    end
-                    Data.SortOrder = SortOrder;
+                    Force = ForceTemp;
+                    Acc = AccTemp;
+                    Strain = StrainTemp;
                 end
             else
                 Force = ForceTemp;
@@ -482,6 +475,17 @@ classdef MoDAL
             Force = squeeze(Force);
             Acc = squeeze(Acc);
             Strain = squeeze(Strain);
+
+            % Detrend the measurements to remove DC offsets
+            if options.Detrend == 1
+                Force = detrend(Force);
+                Acc = detrend(Acc);
+            end
+
+            if options.StrainDetrend == 1
+                Strain = detrend(Strain);
+            end
+
             dt = Time(2)-Time(1);
             Fs = 1/dt;
             Fnyq = Fs/2;
@@ -3016,9 +3020,37 @@ classdef MoDAL
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         end
 
+        function [x_mirror, t_mirror] = MirrorImgSigOIni(t, x)
+            % Generate the mirror image signal by an odd symmetry about t=t0
+            L = length(t); xtmp = x - x(1);
+            t_mirror = [-(t(L:-1:2)-t(1))+t(1)];
+            x_mirror = [-xtmp(L:-1:2)+x(1)];
+        end
+
+        function [x_mirror, t_mirror] = MirrorImgSigEIni(t, x)
+            % Generate the mirror image signal by an even symmetry about t=t0
+            L = length(t); xtmp = x - x(1);
+            t_mirror = [-(t(L:-1:2)-t(1))+t(1)];
+            x_mirror = [xtmp(L:-1:2)+x(1)];
+        end
+
+        function [x_mirror, t_mirror] = MirrorImgSigOFin(t, x)
+            % Generate the mirror image signal by an odd symmetry about t=tf
+            dt = t(2)-t(1); L = length(t); xtmp = x - x(end);
+            t_mirror = [t(end)+dt*[1:L-1]'];
+            x_mirror = [-xtmp(end-1:-1:end-L+1)+x(end)];
+        end
+
+        function [x_mirror, t_mirror] = MirrorImgSigEFin(t, x)
+            % Generate the mirror image signal by an even symmetry about t=tf
+            dt = t(2)-t(1); L = length(t); xtmp = x - x(end);
+            t_mirror = [t(end)+dt*[1:L-1]'];
+            x_mirror = [xtmp(end-1:-1:end-L+1)+x(end)];
+        end
+
     end
 
-    properties (Constant,Access=private)
+    properties (Constant,Access=public)
         UnbiasedOneMinusPinkMat = [   0.94107            1            1'
             0.93738      0.99608      0.99608;
             0.93369      0.99216      0.99216;
@@ -3394,8 +3426,12 @@ classdef MoDAL
 
         function P = WBEMDObjFun(z,time,X_emd,modx_normer,minFreq,maxFreq,numFreq,motherWaveletFreq,mod_criteria1,mod_criteria2,checksval,fg,gamma,delta,Omega)
             masksig = max(abs(X_emd))*(z(1)*sin(2*pi*fg(1)*z(2)*time));
+            try
             [imf1,~] = emdc_fix(time,X_emd+masksig,100,1);
             [imf2,~] = emdc_fix(time,X_emd-masksig,100,1);
+            catch
+                [size(X_emd) size(time)]
+            end
             S1 = size(imf1,1);
             S2 = size(imf2,1);
             if S1 ~= S2
@@ -3594,32 +3630,6 @@ classdef MoDAL
             end
         end
 
-        function [x_mirror, t_mirror] = MirrorImgSigOIni(t, x)
-            % Generate the mirror image signal by an odd symmetry about t=t0
-            L = length(t); xtmp = x - x(1);
-            t_mirror = [-(t(L:-1:2)-t(1))+t(1)];
-            x_mirror = [-xtmp(L:-1:2)+x(1)];
-        end
 
-        function [x_mirror, t_mirror] = MirrorImgSigEIni(t, x)
-            % Generate the mirror image signal by an even symmetry about t=t0
-            L = length(t); xtmp = x - x(1);
-            t_mirror = [-(t(L:-1:2)-t(1))+t(1)];
-            x_mirror = [xtmp(L:-1:2)+x(1)];
-        end
-
-        function [x_mirror, t_mirror] = MirrorImgSigOFin(t, x)
-            % Generate the mirror image signal by an odd symmetry about t=tf
-            dt = t(2)-t(1); L = length(t); xtmp = x - x(end);
-            t_mirror = [t(end)+dt*[1:L-1]'];
-            x_mirror = [-xtmp(end-1:-1:end-L+1)+x(end)];
-        end
-
-        function [x_mirror, t_mirror] = MirrorImgSigEFin(t, x)
-            % Generate the mirror image signal by an even symmetry about t=tf
-            dt = t(2)-t(1); L = length(t); xtmp = x - x(end);
-            t_mirror = [t(end)+dt*[1:L-1]'];
-            x_mirror = [xtmp(end-1:-1:end-L+1)+x(end)];
-        end
     end
 end

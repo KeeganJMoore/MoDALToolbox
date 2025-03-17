@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.9.3";
+        Version = "1.3.10.1";
     end
 
     methods(Static)
@@ -2182,6 +2182,55 @@ classdef MoDAL
                 fft_mode(isnan(fft_mode)) = 0;
                 ModeS = ifft(fft_mode,nfourier,'symmetric');
                 Mode(:,i) = ModeS(1:length(time));
+            end
+        end
+
+        function Tension = StrainBolt(Strain,ident)
+            % Converts a strain signal into a tension for a given bolt.
+            %
+            % Required Inputs
+            % ---------------------------------------------
+            % Strain = Vector or matrix of measured strain. 
+            % ident = String array containing the label for the bolt.
+            %
+            % Outputs
+            % ---------------------------------------------
+            % Tension = The matrix of output tensions for each bolt.
+            library = containers.Map;
+
+            library('1/4 20 001') = @(f) -5561982.2718 * f.^2 + 2658422.0268 *  f;
+            library('1/4 20 002') = @(f) -72600553.2968 * f.^2 + 2896480.2023 *  f;
+            library('1/4 20 003') = @(f) 13412630.2410 * f.^2 + 2609172.2954 *  f;
+            library('1/4 32 001 CR') = @(f) 320538637.3085 * f.^2 + 1701175.8581 *  f;
+            % library('3/8 32 001 CR') = PLACE HOLDER PENDING NEW DATA
+            library('3/8 24 001') = @(f) 7495691.0730 *  f;
+            library('3/8 16 001') = @(f) 6532475.6228 *  f;
+            library('1/2 28 001 CR') = @(f) 18517179173.4206 * f.^2 + 15989740.0976 *  f;
+            % library('1/2 13 001') = PLACE HOLDER PENDING NEW DATA
+
+            if ~isKey(library, ident)
+                error('Unknown bolt identifier: %s', boltID);
+            end
+            
+            if size(Strain,2) > size(Strain,1)
+                Strain = Strain';
+            end
+            if size(ident,2) > size(ident,1)
+                ident = ident';
+            end
+
+            if size(Strain,2) > 1
+                if size(ident,2) ~= size(Strain,2)
+                    error('The number of labels included in ident must be the same as the number of strain signals provided.')
+                end
+                Tension = 0*Strain;
+                for i = 1:size(Strain,2)
+                    formula = library(ident(i));
+                    Tension(:,i) = formula(Strain(:,i));
+                end
+            else
+                formula = library(ident);
+                Tension = formula(Strain);
             end
         end
 

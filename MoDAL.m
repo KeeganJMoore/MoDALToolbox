@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.10.1";
+        Version = "1.3.10.2";
     end
 
     methods(Static)
@@ -2185,13 +2185,13 @@ classdef MoDAL
             end
         end
 
-        function Tension = StrainBolt(Strain,ident)
+        function Tension = StrainBolt(strain,bolts)
             % Converts a strain signal into a tension for a given bolt.
             %
             % Required Inputs
             % ---------------------------------------------
             % Strain = Vector or matrix of measured strain. 
-            % ident = String array containing the label for the bolt.
+            % ident = String scalar or cell containing the labels for the bolts.
             %
             % Outputs
             % ---------------------------------------------
@@ -2208,29 +2208,29 @@ classdef MoDAL
             library('1/2 28 001 CR') = @(f) 18517179173.4206 * f.^2 + 15989740.0976 *  f;
             % library('1/2 13 001') = PLACE HOLDER PENDING NEW DATA
 
-            if ~isKey(library, ident)
+            if ~isKey(library, bolts)
                 error('Unknown bolt identifier: %s', boltID);
             end
             
-            if size(Strain,2) > size(Strain,1)
-                Strain = Strain';
+            if size(strain,2) > size(strain,1)
+                strain = strain';
             end
-            if size(ident,2) > size(ident,1)
-                ident = ident';
+            if size(bolts,2) > size(bolts,1)
+                bolts = bolts';
             end
 
-            if size(Strain,2) > 1
-                if size(ident,2) ~= size(Strain,2)
+            if size(strain,2) > 1
+                if size(bolts,1) ~= size(strain,2)
                     error('The number of labels included in ident must be the same as the number of strain signals provided.')
                 end
-                Tension = 0*Strain;
-                for i = 1:size(Strain,2)
-                    formula = library(ident(i));
-                    Tension(:,i) = formula(Strain(:,i));
+                Tension = 0*strain;
+                for i = 1:size(strain,2)
+                    formula = library(bolts{i});
+                    Tension(:,i) = formula(strain(:,i));
                 end
             else
-                formula = library(ident);
-                Tension = formula(Strain);
+                formula = library(bolts);
+                Tension = formula(strain);
             end
         end
 

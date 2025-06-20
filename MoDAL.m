@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.11.1";
+        Version = "1.3.12";
     end
 
     methods(Static)
@@ -517,7 +517,7 @@ classdef MoDAL
             dt = time(2)-time(1);
             L = length(time);
             f = 1/dt*(0:L/2)/L;
-            Fx = fft(signal,L)*2/L;
+            Fx = fft(signal,L);
         end
 
         % Compute WT
@@ -690,7 +690,7 @@ classdef MoDAL
             dt = time(2)-time(1);
             L = length(time);
             f = 1/dt*(0:L/2)/L;
-            FFx = 2/L*fft(signal);
+            FFx = fft(signal);
             Phase = unwrap(angle(FFx(1:length(f))));
             FFx = abs(FFx(1:length(f)));
             if Same ~= 1
@@ -740,8 +740,8 @@ classdef MoDAL
             dt = time(2)-time(1);
             L = length(time);
             f = 1/dt*(0:L/2)/L;
-            Fx = 2/L*fft(signal,L);
-            FF = 2/L*fft(Force,L);
+            Fx = fft(signal,L);
+            FF = fft(Force,L);
             Phase = Fx(1:length(f))./FF(1:length(f));
             tol = 1e-6;
             Phase(abs(Phase) < tol) = 0;
@@ -3460,7 +3460,7 @@ classdef MoDAL
                 MoDAL.YLabel(options.label,1)
             else
                 Fx = fft(signal);
-                FFx = abs(Fx(1:length(freq)))*2/L;
+                FFx = abs(Fx(1:length(freq)));
                 semilogy(freq,FFx,options.color,'LineStyle',options.linestyle)
                 MoDAL.YLabel(options.label)
             end

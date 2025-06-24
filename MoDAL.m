@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.12";
+        Version = "1.3.13";
     end
 
     methods(Static)
@@ -574,7 +574,7 @@ classdef MoDAL
             % Citation
             % --------
             % K.J. Moore, M. Kurt, M. Eriten, D.M. McFarland, L.A. Bergman, A.F. Vakakis,
-            % “Wavelet-Bounded Empirical Mode Decomposition for Measured Time Series Analysis,”
+            % "Wavelet-Bounded Empirical Mode Decomposition for Measured Time Series Analysis,"
             % Mechanical Systems and Signal Processing, 99:14–29, 2018.
             % https://dx.doi.org/10.1016/j.ymssp.2017.06.005
 
@@ -698,6 +698,7 @@ classdef MoDAL
             end
             subplot(2,1,1)
             semilogy(f,FFx,'Color',Color)
+            hold on
             xlabel('Frequency [Hz]')
             xlim([minFreq maxFreq])
             if strcmp(Label,'Acc')
@@ -710,7 +711,7 @@ classdef MoDAL
 
             subplot(2,1,2)
             plot(f,Phase,'Color',Color)
-
+            hold on
             xlabel('Frequency [Hz]')
             ylabel('Angle [rad]')
             xlim([minFreq maxFreq])
@@ -752,6 +753,7 @@ classdef MoDAL
             end
             subplot(2,1,1)
             semilogy(f,FFx,'Color',Color)
+            hold on
             xlabel('Frequency [Hz]')
             xlim([minFreq maxFreq])
             if strcmp(Label,'Acc')
@@ -764,6 +766,7 @@ classdef MoDAL
 
             subplot(2,1,2)
             plot(f,Phase,'Color',Color)
+            hold on
             xlabel('Frequency [Hz]')
             ylabel('Angle [rad]')
             xlim([minFreq maxFreq])
@@ -2893,7 +2896,7 @@ classdef MoDAL
             % Citation
             % --------
             % K.J. Moore, M. Kurt, M. Eriten, D.M. McFarland, L.A. Bergman, A.F. Vakakis,
-            % “Wavelet-Bounded Empirical Mode Decomposition for Measured Time Series Analysis,”
+            % "Wavelet-Bounded Empirical Mode Decomposition for Measured Time Series Analysis,"
             % Mechanical Systems and Signal Processing [IF: 8.934], 99:14–29, 2018.
             % https://dx.doi.org/10.1016/j.ymssp.2017.06.005
             arguments

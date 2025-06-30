@@ -1445,8 +1445,7 @@ classdef MoDAL
             MoDAL.FTPlot(time2,signal2,minFreq,maxFreq,force=F2,color=options.secondColor, ...
                 label=options.label,fontSize=options.fontSize,linestyle=options.secondLineStyle)
             legend(options.legends,options.legendsOpt{:})
-            drawnow;
-            % S4.Position(2) = 0.12464;
+
             if options.hideX; MoDAL.HideX;end
         end
 

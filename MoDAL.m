@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.14";
+        Version = "1.3.15";
     end
 
     methods(Static)
@@ -595,7 +595,7 @@ classdef MoDAL
             waveletScale = options.motherWaveletFreq./freq; % Compute the wavelet scales
 
             % FFT Parameters
-            nfourier = 2^nextpow2(lengthSignal);			        % Zero-filling
+            nfourier = 2^nextpow2(lengthSignal); % Zero-filling
             npt = nfourier/2;
             Fourierfreq = 1/dt*(0:npt-1)/nfourier; % Frequency vector
 
@@ -741,8 +741,8 @@ classdef MoDAL
             dt = time(2)-time(1);
             L = length(time);
             f = 1/dt*(0:L/2)/L;
-            Fx = fft(signal,L);
-            FF = fft(Force,L);
+            Fx = 2/L*fft(signal,L);
+            FF = 2/L*fft(Force,L);
             Phase = Fx(1:length(f))./FF(1:length(f));
             tol = 1e-6;
             Phase(abs(Phase) < tol) = 0;
@@ -910,6 +910,7 @@ classdef MoDAL
                 timeEnd=options.timeEnd,label=options.label, ...
                 fontSize=options.fontSize,tsLim=options.tsLim)
             title(options.title)
+            
 
             % Compute WT
             [freq,mods] = MoDAL.WaveletSignal(time,signal,minFreq,maxFreq, ...
@@ -920,7 +921,7 @@ classdef MoDAL
             nexttile([1,2])
             MoDAL.WTSpectraPlot(time,freq,mods,options)
 
-            if options.hideX; MoDAL.HideX;end
+            if options.hideX;MoDAL.HideX;end
         end
 
         function PlotTSWTFT(time,signal,minFreq,maxFreq,options)
@@ -3726,7 +3727,7 @@ classdef MoDAL
 
         function HideX
             % Extract axes from current figure
-            Ax = gcf().Children(strcmp(get(gcf().Children,'type'),'axes'));
+            Ax = gcf().Children().Children(strcmp(get(gcf().Children.Children,'type'),'axes'));
             switch length(Ax)
                 case 3
                     Ax3 = Ax(3);

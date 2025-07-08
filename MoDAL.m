@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.15";
+        Version = "1.3.16";
     end
 
     methods(Static)
@@ -540,6 +540,17 @@ classdef MoDAL
             %           (default value = 100).
             % motherWaveletFreq - Frequency of the mother wavelet used in
             %           the WT (default value = 2).
+            % mirror - On/Off switch for mirroring where 0 = off and 1 = on.
+            % mirrorIni – The type of mirroring used at the beginning of the signal provided
+            %           as a string. 'e' for even mirroring and 'o' for odd mirroring. 
+            %           Odd mirroring is the default value.
+            % mirrorFin – The type of mirroring used at the end of the signal provided
+            %           as a string. 'e' for even mirroring and 'o' for odd mirroring. 
+            %           Odd mirroring is the default value.
+            % iniFraction – The fraction of the signal used for mirroring
+            %                     at the beginning of the signal. Default value is 0.2.
+            % finFraction – The fraction of the signal used for mirroring
+            %                     at the end of the signal. Default value is 0.2.
             %
             % Outputs
             % -------
@@ -585,8 +596,19 @@ classdef MoDAL
                 maxFreq double
                 options.numFreq double = 100;
                 options.motherWaveletFreq double = 2;
+                options.mirror double = 1;
+                options.mirrorIni string = 'o';
+                options.mirrorFin string = 'o';
+                options.iniFraction double = 0.2;
+                options.finFraction double = 0.2;
             end
-
+           
+            % Mirror signal if requested
+            if options.mirror == 1
+            [signal,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd] = MoDAL.MirrorSignal(time, ...
+                signal,options.mirrorIni,options.mirrorFin,options.iniFraction,options.finFraction);
+            end
+            
             % Transform Parameters
             dt = time(2)-time(1);
             lengthSignal = length(signal);
@@ -616,6 +638,16 @@ classdef MoDAL
             result = ifft(core2,nfourier);
             result1 = result(1:lengthSignal,:);
             modulus  = abs(result1);
+
+            if options.mirror == 1
+                if NoMirrorIni == 0 && NoMirrorEnd == 0
+                    modulus = modulus(L_chp1:end-L_chp2+1,:);
+                elseif NoMirrorIni == 0 && NoMirrorEnd == 1
+                    modulus = modulus(L_chp1:end,:);
+                elseif NoMirrorIni == 1 && NoMirrorEnd == 0
+                    modulus = modulus(1:end-L_chp2+1,:);
+                end
+            end
         end
 
         % Compute Guyan Reduction
@@ -2165,7 +2197,7 @@ classdef MoDAL
                 signal double
                 lowerFreqs double
                 upperFreqs double
-                options.motherWaveletFreq = 16;
+                options.motherWaveletFreq = 4;
                 options.mirrori string = 'e';
                 options.mirrorf string = 'e';
                 options.chp1 = 0.2;
@@ -2622,7 +2654,7 @@ classdef MoDAL
             % Vakakis, "Wavelet-Bounded Empirical Mode Decomposition for Measured Time
             % Series Analysis," Mechanical Systems and Signal Processing, 99:14-29,
             % 2018. https://doi.org/10.1016/j.ymssp.2017.06.005
-            %
+            % 
             % K.J. Moore, M. Kurt, M. Eriten, D.M. McFarland, L.A. Bergman, A.F.
             % Vakakis, "Wavelet-Bounded Empirical Mode Decomposition for Vibro-Impact
             % Analysis," Nonlinear Dynamics, 93(3):1559-1577, 2018.
@@ -2772,7 +2804,7 @@ classdef MoDAL
                         fprintf('Optimizing IMF %g of Time Series %g.\n ',o,b)
 
                         [freq,modx] = MoDAL.WaveletTransform(time,signal(:,b),minFreq,maxFreq, ...
-                            'numFreq',numFreq,'motherWaveletFreq',motherWaveletFreq);
+                            'numFreq',numFreq,'motherWaveletFreq',motherWaveletFreq,'Mirror',0);
                         modx(isnan(modx))=0;
                         if options.Mirror.On == 1
                             if fg(o,1) == fmirr(m)
@@ -3163,6 +3195,67 @@ classdef MoDAL
             dt = t(2)-t(1); L = length(t); xtmp = x - x(end);
             t_mirror = [t(end)+dt*[1:L-1]'];
             x_mirror = [xtmp(end-1:-1:end-L+1)+x(end)];
+        end
+
+        function [x_mirror,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd] = ...
+                MirrorSignal(time,signal,mirrori,mirrorf,chp1,chp2)
+            arguments
+                time (:,1) double
+                signal (:,1) double
+                mirrori string = 'e';
+                mirrorf string  = 'e';
+                chp1 double = 0.2;
+                chp2 double = 0.2;
+            end
+            L = length(time); L_chp1 = MoDAL.chop(L*chp1,2); L_chp2 = MoDAL.chop(L*chp2,2);
+            [x_o_ini,~] = MoDAL.MirrorImgSigOIni(time(1:L_chp1),signal(1:L_chp1));
+            [x_e_ini,~] = MoDAL.MirrorImgSigEIni(time(1:L_chp1),signal(1:L_chp1));
+            [x_o_fin,~] = MoDAL.MirrorImgSigOFin(time(end-L_chp2+1:end),signal(end-L_chp2+1:end));
+            [x_e_fin,~] = MoDAL.MirrorImgSigEFin(time(end-L_chp2+1:end),signal(end-L_chp2+1:end));
+
+            NoMirrorIni = 0;
+            NoMirrorEnd = 0;
+            if strcmp(mirrori,'e')
+                if strcmp(mirrorf,'e')
+                    x_mirror = [x_e_ini; signal; x_e_fin];
+                elseif strcmp(mirrorf,'o')
+                    x_mirror = [x_e_ini; signal; x_o_fin];
+                else
+                    x_mirror = [x_e_ini; signal];
+                    NoMirrorEnd = 1;
+                end
+            elseif strcmp(mirrori,'o')
+                if strcmp(mirrorf,'e')
+                    x_mirror = [x_o_ini; signal; x_e_fin];
+                elseif strcmp(mirrorf,'o')
+                    x_mirror = [x_o_ini; signal; x_o_fin];
+                else
+                    x_mirror = [x_o_ini; signal];
+                    NoMirrorEnd = 1;
+                end
+            else
+                if strcmp(mirrorf,'e')
+                    x_mirror = [signal; x_e_fin];
+                elseif strcmp(mirrorf,'o')
+                    x_mirror = [signal; x_o_fin];
+                else
+                    x_mirror = signal;
+                    NoMirrorEnd = 1;
+                end
+                NoMirrorIni = 1;
+            end
+        end
+
+        function Signal = UnmirrorSignal(signal,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd)
+            if NoMirrorIni == 0 && NoMirrorEnd == 0
+                Signal = signal(L_chp1:end-L_chp2+1);
+            elseif NoMirrorIni == 0 && NoMirrorEnd == 1
+                Signal = signal(L_chp1:end);
+            elseif NoMirrorIni == 1 && NoMirrorEnd == 0
+                Signal = signal(1:end-L_chp2+1);
+            else
+                Signal = signal;
+            end
         end
 
     end
@@ -3595,66 +3688,7 @@ classdef MoDAL
             end
         end
 
-        function [x_mirror,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd] = ...
-                MirrorSignal(time,signal,mirrori,mirrorf,chp1,chp2)
-            arguments
-                time (:,1) double
-                signal (:,1) double
-                mirrori string = 'e';
-                mirrorf string  = 'e';
-                chp1 double = 0.2;
-                chp2 double = 0.2;
-            end
-            L = length(time); L_chp1 = MoDAL.chop(L*chp1,2); L_chp2 = MoDAL.chop(L*chp2,2);
-            [x_o_ini,~] = MoDAL.MirrorImgSigOIni(time(1:L_chp1),signal(1:L_chp1));
-            [x_e_ini,~] = MoDAL.MirrorImgSigEIni(time(1:L_chp1),signal(1:L_chp1));
-            [x_o_fin,~] = MoDAL.MirrorImgSigOFin(time(end-L_chp2+1:end),signal(end-L_chp2+1:end));
-            [x_e_fin,~] = MoDAL.MirrorImgSigEFin(time(end-L_chp2+1:end),signal(end-L_chp2+1:end));
-
-            NoMirrorIni = 0;
-            NoMirrorEnd = 0;
-            if strcmp(mirrori,'e')
-                if strcmp(mirrorf,'e')
-                    x_mirror = [x_e_ini; signal; x_e_fin];
-                elseif strcmp(mirrorf,'o')
-                    x_mirror = [x_e_ini; signal; x_o_fin];
-                else
-                    x_mirror = [x_e_ini; signal];
-                    NoMirrorEnd = 1;
-                end
-            elseif strcmp(mirrori,'o')
-                if strcmp(mirrorf,'e')
-                    x_mirror = [x_o_ini; signal; x_e_fin];
-                elseif strcmp(mirrorf,'o')
-                    x_mirror = [x_o_ini; signal; x_o_fin];
-                else
-                    x_mirror = [x_o_ini; signal];
-                    NoMirrorEnd = 1;
-                end
-            else
-                if strcmp(mirrorf,'e')
-                    x_mirror = [signal; x_e_fin];
-                elseif strcmp(mirrorf,'o')
-                    x_mirror = [signal; x_o_fin];
-                else
-                    x_mirror = signal;
-                    NoMirrorEnd = 1;
-                end
-                NoMirrorIni = 1;
-            end
-        end
-
-        function Signal = UnmirrorSignal(signal,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd)
-            if NoMirrorIni == 0 && NoMirrorEnd == 0
-                Signal = signal(L_chp1:end-L_chp2+1);
-            elseif NoMirrorIni == 0 && NoMirrorEnd == 1
-                Signal = signal(L_chp1:end);
-            elseif NoMirrorIni == 1 && NoMirrorEnd == 0
-                Signal = signal(1:end-L_chp2+1);
-            else
-                Signal = signal;
-            end
-        end
+        
 
         function X = chop(Xin,n,unit)
             %CHOP   CHOP(X,n) rounds elements of X to n significant figures.

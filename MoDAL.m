@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.16";
+        Version = "1.3.17";
     end
 
     methods(Static)
@@ -608,7 +608,7 @@ classdef MoDAL
             [signal,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd] = MoDAL.MirrorSignal(time, ...
                 signal,options.mirrorIni,options.mirrorFin,options.iniFraction,options.finFraction);
             end
-            
+             
             % Transform Parameters
             dt = time(2)-time(1);
             lengthSignal = length(signal);
@@ -626,7 +626,7 @@ classdef MoDAL
             signalFFT(npt+1:end) = [];
 
             % Vectorized Computation of Wavelet Transform of signal
-            core2 = bsxfun(@times,conj(bsxfun(@times,(2^0.5)*exp(-0.5* ...
+            core2 = bsxfun(@times,conj(bsxfun(@times,(2^0.5)*pi^(1/4)*exp(-0.5* ...
                 (2*pi*(bsxfun(@times,Fourierfreq',waveletScale)- ...
                 options.motherWaveletFreq)).^2),sqrt(waveletScale))), ...
                 signalFFT);
@@ -658,7 +658,7 @@ classdef MoDAL
             %
             % K , M , D: Full order stiffness & Mass Matrices
             % SlaveDofs : Dofs to be deattached from system
-            % KR, MR,Dr : Reduced stiffness & Mass Matrices
+            % KR, MR, Dr : Reduced stiffness & Mass Matrices
             % T : Transformation Matrix
             % Kss : Slave Stiffness Matrix
             %
@@ -696,6 +696,42 @@ classdef MoDAL
             MR = T'*M*T;
             KR = T'*K*T;
             DR = T'*D*T;
+        end
+
+
+        % Compute SEREP Reduction
+        function [KR,MR,CR,T] = SEREP(K , M , C, SlaveDofs)
+            %
+            %  System Equivalent Reduction Expansion Process (SEREP)
+            %  with this method, the reduced model will exactly reproduce
+            %  the natural freq.s of full model.
+            %
+            % K , M : Full order stiffness & Mass Matrices
+            % SlaveDofs : Dofs to be deattached from system
+            % KR, MR : Reduced stiffness & Mass Matrices
+            % T : Transformation Matrix
+            %
+            %
+            %  Keegan J. Moore (2025)
+            %  Georgia Institute of Technology
+
+            SlaveDofs = sort(SlaveDofs);
+            [EigenVectors,~] = eig(K,M) ;
+            index = 1 : length(K(:,1));
+            index(SlaveDofs) = [];
+
+            for i = 1:length(M)
+                EigenVectors(:,i) = EigenVectors(:,i)/sqrt(EigenVectors(:,i)'*M*EigenVectors(:,i));
+            end
+            L1 = length(index);
+            EigenVectors = EigenVectors(:,1:L1); % We keep the same number of modes as the number of slave DOFs.
+            % The above line needs to be modified if you want to keep a
+            % specific set of modes instead of the first through L1 mode.
+            Am = EigenVectors(index,:);
+            T = EigenVectors*pinv(Am);
+            MR = T'*M*T;
+            KR = T'*K*T;
+            CR = T'*C*T;
         end
 
         % Plot FFT/FRF

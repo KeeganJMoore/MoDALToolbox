@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.17";
+        Version = "1.3.18";
     end
 
     methods(Static)
@@ -3599,7 +3599,7 @@ classdef MoDAL
                 options.linestyle string = '-';
             end
             dt = time(2)-time(1);
-            freq = 0:1/time(end):1/(2*dt);
+            freq = 0:1/(time(end)-time(1)):1/(2*dt);
             L = length(time);
             if length(options.force) == L
                 Fx = fft(signal);

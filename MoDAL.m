@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.20";
+        Version = "1.3.21";
     end
 
     methods(Static)
@@ -199,7 +199,7 @@ classdef MoDAL
             set(gca,'FontSize',options.fontSize)
         end
 
-        function [omega,Phi] = ComputeNormalModes(stiffnessMatrix,massMatrix)
+        function [natFreq,Phi] = ComputeNormalModes(stiffnessMatrix,massMatrix)
             % This code computes the natural frequencies in Hz and the mass-orthnormalized mode
             % shapes for given mass and stiffness matrices. The natural frequencies and mode shpares
             % are ordered from lowest to highest natural frequency.
@@ -214,16 +214,16 @@ classdef MoDAL
             % omega - Vector of natural frequencies in Hz.
             % Phi - Modal matrix where each column represents a mass-orthonormalized mode shape
             %       corresponding to the rows of the natural frequency vector.
-            [Phi,omega] = eig(stiffnessMatrix,massMatrix,'vector');
-            omega = sqrt(omega)/(2*pi);
+            [Phi,natFreq] = eig(stiffnessMatrix,massMatrix,'vector');
+            natFreq = sqrt(natFreq)/(2*pi);
 
             for i = 1:length(massMatrix)
                 Phi(:,i) = Phi(:,i)/sqrt(Phi(:,i)'*massMatrix*Phi(:,i));
             end
 
-            H = [omega Phi'];
+            H = [natFreq Phi'];
             H = sortrows(H,1);
-            omega = H(:,1);
+            natFreq = H(:,1);
             Phi = H(:,2:end)';
         end
 

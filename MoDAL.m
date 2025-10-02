@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.22";
+        Version = "1.3.23";
     end
 
     methods(Static)
@@ -936,17 +936,17 @@ classdef MoDAL
             end
 
             figure
-            tiledlayout('flow','TileSpacing','tight')
+            tiledlayout('vertical','TileSpacing','tight')
 
             % Plot Time Series
-            nexttile([1,2])
+            nexttile
             MoDAL.TSPlot(time,signal,timeStart=options.timeStart,...
                 timeEnd=options.timeEnd,label=options.label, ...
                 fontSize=options.fontSize,tsLim=options.tsLim)
             title(options.title)
 
             % Plot FFT
-            nexttile([1,2])
+            nexttile
             MoDAL.FTPlot(time,signal,minFreq,maxFreq,force=options.force, ...
                 label=options.label,fontSize=options.fontSize)
 
@@ -1019,10 +1019,10 @@ classdef MoDAL
             end
 
             figure
-            tiledlayout('flow','TileSpacing','tight')
+            tiledlayout('vertical','TileSpacing','tight')
 
             % Plot Time Series                        
-            nexttile([1,2])
+            nexttile
             MoDAL.TSPlot(time,signal,timeStart=options.timeStart,...
                 timeEnd=options.timeEnd,label=options.label, ...
                 fontSize=options.fontSize,tsLim=options.tsLim)
@@ -1035,7 +1035,7 @@ classdef MoDAL
             mods = mods/max(mods,[],'All');
 
             % Plot WT
-            nexttile([1,2])
+            nexttile
             MoDAL.WTSpectraPlot(time,freq,mods,options)
 
             if options.hideX;MoDAL.HideX;end
@@ -1108,10 +1108,10 @@ classdef MoDAL
             end
 
             figure
-            tiledlayout('flow','TileSpacing','tight')
+            tiledlayout('vertical','TileSpacing','tight')
             % Plot Time Series
                         
-            nexttile([1,2])
+            nexttile
             MoDAL.TSPlot(time,signal,timeStart=options.timeStart,...
                 timeEnd=options.timeEnd,label=options.label, ...
                 fontSize=options.fontSize,tsLim=options.tsLim)
@@ -1123,11 +1123,11 @@ classdef MoDAL
             mods = mods/max(mods,[],'All');
 
             % Plot WT
-            nexttile([1,2])
+            nexttile
             MoDAL.WTSpectraPlot(time,freq,mods,options)
 
             % Plot FFT/FRF
-            nexttile([1,2])
+            nexttile
             MoDAL.FTPlot(time,signal,minFreq,maxFreq,force=options.force, ...
                 label=options.label,fontSize=options.fontSize)
 
@@ -1192,8 +1192,8 @@ classdef MoDAL
             end
 
             figure
-            tiledlayout('flow','TileSpacing','tight')
-            nexttile([1,2])
+            tiledlayout('vertical','TileSpacing','tight')
+            nexttile
 
             % Plot Time Series
             MoDAL.TSPlot(time,signal,timeStart=options.timeStart,...
@@ -1206,7 +1206,7 @@ classdef MoDAL
             mods = mods/max(mods,[],'All');
 
             % Plot MWT
-            nexttile([1,2])
+            nexttile
             MoDAL.MWTPlot(freq,max(mods),minFreq,maxFreq, ...
                 fontSize=options.fontSize,label=options.label)
 
@@ -1277,8 +1277,8 @@ classdef MoDAL
             end
 
             figure
-            tiledlayout('flow','TileSpacing','tight')
-            nexttile([1,2])
+            tiledlayout('vertical','TileSpacing','tight')
+            nexttile
 
             % Plot Time Series
             MoDAL.TSPlot(time,signal,timeStart=options.timeStart,...
@@ -1291,11 +1291,11 @@ classdef MoDAL
             mods = mods/max(mods,[],'All');
 
             % Plot the WT
-            nexttile([1,2])
+            nexttile
             MoDAL.WTSpectraPlot(time,freq,mods,options)
 
             % Plot the MWT
-            nexttile([1,2])
+            nexttile
             MoDAL.MWTPlot(freq,max(mods),minFreq,maxFreq, ...
                 fontSize=options.fontSize,label=options.label)
 
@@ -1386,8 +1386,8 @@ classdef MoDAL
             end
 
             figure
-            tiledlayout('flow','TileSpacing','tight')
-            nexttile([1,2])
+            tiledlayout('vertical','TileSpacing','tight')
+            nexttile
 
             % Plot Time Series
             MoDAL.TSPlot(time1,signal1,color=options.firstColor,fontSize=options.fontSize, ...
@@ -1412,12 +1412,12 @@ classdef MoDAL
             mods2 = mods2/maxnorm;
 
             % Plot Wavelets
-            nexttile([1,2])
+            nexttile
             MoDAL.WTSpectraPlot(time1,freq1,mods1,options)
             clim([0 1])
             title(options.legends{1})
 
-            nexttile([1,2])
+            nexttile
             MoDAL.WTSpectraPlot(time2,freq2,mods2,options)
             clim([0 1])
             title(options.legends{2})
@@ -1521,7 +1521,8 @@ classdef MoDAL
             end
 
             figure
-            tiledlayout('flow',TileSpacing='tight');
+            tiledlayout(3,2,TileSpacing='tight');
+            
             nexttile([1,2])
             MoDAL.TSPlot(time1,signal1,color=options.firstColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
@@ -1644,8 +1645,8 @@ classdef MoDAL
             end
 
             figure
-            tiledlayout('flow','TileSpacing','tight')
-            nexttile([1,2])
+            tiledlayout('vertical','TileSpacing','tight')
+            nexttile
 
             % Plot the Time Series
             MoDAL.TSPlot(time1,signal1,color=options.firstColor,fontSize=options.fontSize, ...
@@ -1670,7 +1671,7 @@ classdef MoDAL
             mods2 = mods2/maxnorm;
 
             % Plot MWT
-            nexttile([1,2])
+            nexttile
             MoDAL.MWTPlot(freq1,max(mods1),minFreq,maxFreq, ...
                 fontSize=options.fontSize,label=options.label)
             hold on
@@ -1765,7 +1766,7 @@ classdef MoDAL
             end
 
             figure
-            tiledlayout('flow','TileSpacing','tight')
+            tiledlayout(3,2,'TileSpacing','tight')
             nexttile([1,2])
             MoDAL.TSPlot(time1,signal1,color=options.firstColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
@@ -1896,8 +1897,8 @@ classdef MoDAL
             end
 
             figure
-            tiledlayout('flow','TileSpacing','tight')
-            nexttile([1,2])
+            tiledlayout('vertical','TileSpacing','tight')
+            nexttile
             MoDAL.TSPlot(time1,signal1,color=options.firstColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
                 tsLim=options.tsLim,linestyle=options.firstLineStyle)
@@ -1908,7 +1909,7 @@ classdef MoDAL
             legend(options.legends,options.legendsOpt{:})
             title(options.title)
 
-            nexttile([1,2])
+            nexttile
             MoDAL.FTPlot(time1,signal1,minFreq,maxFreq,force=F1,color=options.firstColor, ...
                 label=options.label,fontSize=options.fontSize,linestyle=options.firstLineStyle)
             hold on
@@ -1999,8 +2000,8 @@ classdef MoDAL
             end
 
             figure
-            tiledlayout('flow','TileSpacing','tight')
-            nexttile([1,2])
+            tiledlayout('vertical','TileSpacing','tight')
+            nexttile
             % Plot Time Series
             MoDAL.TSPlot(time,signal,color=options.firstColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
@@ -2019,11 +2020,11 @@ classdef MoDAL
             mods2 = mods2/maxnorm;
 
             % Plot Wavelets
-            nexttile([1,2])
+            nexttile
             MoDAL.WTSpectraPlot(time,freq1,mods1,options)
             clim([0 1])
 
-            nexttile([1,2])
+            nexttile
             MoDAL.WTSpectraPlot(time,freq2,mods2,options)
             clim([0 1])
             if options.hideX; MoDAL.HideX;end

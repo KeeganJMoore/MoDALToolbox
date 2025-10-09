@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.23";
+        Version = "1.3.24";
     end
 
     methods(Static)
@@ -919,6 +919,11 @@ classdef MoDAL
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first plot.
+            % radians - Sets the frequency units to Hz or rad/s. The default 
+            %           value is 0 which sets the units to Hz. A value of 1 
+            %           sets the units to rad/s. If you are using rad/s, the
+            %           method assumes that minFreq and maxFreq are provided
+            %           in rad/s and not in Hz.
 
             arguments
                 time (:,1) double
@@ -933,6 +938,7 @@ classdef MoDAL
                 options.force (:,1) double = [];
                 options.title string = '';
                 options.hideX double = 0;
+                options.radians double {mustBeInRange(options.radians,0,1)} = 0;
             end
 
             figure
@@ -948,7 +954,7 @@ classdef MoDAL
             % Plot FFT
             nexttile
             MoDAL.FTPlot(time,signal,minFreq,maxFreq,force=options.force, ...
-                label=options.label,fontSize=options.fontSize)
+                label=options.label,fontSize=options.fontSize,radians=options.radians)
 
             if options.hideX; MoDAL.HideX;end
         end
@@ -997,7 +1003,11 @@ classdef MoDAL
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first plot.
-
+            % radians - Sets the frequency units to Hz or rad/s. The default 
+            %           value is 0 which sets the units to Hz. A value of 1 
+            %           sets the units to rad/s. If you are using rad/s, the
+            %           method assumes that minFreq and maxFreq are provided
+            %           in rad/s and not in Hz.
             arguments
                 time (:,1) double
                 signal (:,1) double
@@ -1016,6 +1026,7 @@ classdef MoDAL
                 options.wtPower double = 1;
                 options.title string = '';
                 options.hideX double = 0;
+                options.radians double {mustBeInRange(options.radians,0,1)} = 0;
             end
 
             figure
@@ -1030,13 +1041,19 @@ classdef MoDAL
             
 
             % Compute WT
-            [freq,mods] = MoDAL.WaveletSignal(time,signal,minFreq,maxFreq, ...
-                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            if options.radians
+                [freq,mods] = MoDAL.WaveletSignal(time/(2*pi),signal,minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            else
+                [freq,mods] = MoDAL.WaveletSignal(time,signal,minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            end
             mods = mods/max(mods,[],'All');
 
             % Plot WT
             nexttile
             MoDAL.WTSpectraPlot(time,freq,mods,options)
+
 
             if options.hideX;MoDAL.HideX;end
         end
@@ -1086,6 +1103,12 @@ classdef MoDAL
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first two plots.
+            % radians - Sets the frequency units to Hz or rad/s. The default 
+            %           value is 0 which sets the units to Hz. A value of 1 
+            %           sets the units to rad/s. If you are using rad/s, the
+            %           method assumes that minFreq and maxFreq are provided
+            %           in rad/s and not in Hz.
+
             arguments
                 time (:,1) double
                 signal (:,1) double
@@ -1105,6 +1128,7 @@ classdef MoDAL
                 options.wtPower double = 1;
                 options.title string = '';
                 options.hideX double = 0;
+                options.radians double {mustBeInRange(options.radians,0,1)} = 0;
             end
 
             figure
@@ -1118,8 +1142,13 @@ classdef MoDAL
             title(options.title)
 
             % Compute WT
-            [freq,mods] = MoDAL.WaveletSignal(time,signal,minFreq,maxFreq, ...
-                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            if options.radians
+                [freq,mods] = MoDAL.WaveletSignal(time/(2*pi),signal,minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            else
+                [freq,mods] = MoDAL.WaveletSignal(time,signal,minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            end
             mods = mods/max(mods,[],'All');
 
             % Plot WT
@@ -1129,7 +1158,7 @@ classdef MoDAL
             % Plot FFT/FRF
             nexttile
             MoDAL.FTPlot(time,signal,minFreq,maxFreq,force=options.force, ...
-                label=options.label,fontSize=options.fontSize)
+                label=options.label,fontSize=options.fontSize,radians=options.radians)
 
             if options.hideX; MoDAL.HideX;end
         end
@@ -1173,6 +1202,12 @@ classdef MoDAL
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first plot.
+            % radians - Sets the frequency units to Hz or rad/s. The default 
+            %           value is 0 which sets the units to Hz. A value of 1 
+            %           sets the units to rad/s. If you are using rad/s, the
+            %           method assumes that minFreq and maxFreq are provided
+            %           in rad/s and not in Hz.
+
             arguments
                 time (:,1) double
                 signal (:,1) double
@@ -1189,6 +1224,7 @@ classdef MoDAL
                 options.mirrorf string = 'e';
                 options.title string = '';
                 options.hideX double = 0;
+                options.radians double {mustBeInRange(options.radians,0,1)} = 0;
             end
 
             figure
@@ -1201,8 +1237,13 @@ classdef MoDAL
             title(options.title)
 
             % Compute WT
-            [freq,mods] = MoDAL.WaveletSignal(time,signal,minFreq,maxFreq, ...
-                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            if options.radians
+                [freq,mods] = MoDAL.WaveletSignal(time/(2*pi),signal,minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            else
+                [freq,mods] = MoDAL.WaveletSignal(time,signal,minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            end
             mods = mods/max(mods,[],'All');
 
             % Plot MWT
@@ -1256,6 +1297,12 @@ classdef MoDAL
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first two plots.
+            % radians - Sets the frequency units to Hz or rad/s. The default 
+            %           value is 0 which sets the units to Hz. A value of 1 
+            %           sets the units to rad/s. If you are using rad/s, the
+            %           method assumes that minFreq and maxFreq are provided
+            %           in rad/s and not in Hz.
+
             arguments
                 time (:,1) double
                 signal (:,1) double
@@ -1274,6 +1321,7 @@ classdef MoDAL
                 options.wtPower double = 1;
                 options.title string = '';
                 options.hideX double = 0;
+                options.radians double {mustBeInRange(options.radians,0,1)} = 0;
             end
 
             figure
@@ -1356,6 +1404,12 @@ classdef MoDAL
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first two plots.
+            % radians - Sets the frequency units to Hz or rad/s. The default 
+            %           value is 0 which sets the units to Hz. A value of 1 
+            %           sets the units to rad/s. If you are using rad/s, the
+            %           method assumes that minFreq and maxFreq are provided
+            %           in rad/s and not in Hz.
+
             arguments
                 time1 (:,1) double
                 signal1 (:,1) double
@@ -1383,6 +1437,7 @@ classdef MoDAL
                 options.wtPower double = 1;
                 options.title string = '';
                 options.hideX double = 0;
+                options.radians double {mustBeInRange(options.radians,0,1)} = 0;
             end
 
             figure
@@ -1401,10 +1456,17 @@ classdef MoDAL
             title(options.title)
 
             % Compute Wavelet Transforms
-            [freq1,mods1] = MoDAL.WaveletSignal(time1,signal1,minFreq,maxFreq, ...
-                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
-            [freq2,mods2] = MoDAL.WaveletSignal(time2,signal2,minFreq,maxFreq, ...
-                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            if options.radians
+                [freq1,mods1] = MoDAL.WaveletSignal(time1/(2*pi),signal1,minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                [freq2,mods2] = MoDAL.WaveletSignal(time2/(2*pi),signal2,minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            else
+                [freq1,mods1] = MoDAL.WaveletSignal(time1,signal1,minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                [freq2,mods2] = MoDAL.WaveletSignal(time2,signal2,minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            end
 
             % Normalize Wavelets
             maxnorm = max([max(max(mods1)) max(max(mods2))]);
@@ -1481,6 +1543,11 @@ classdef MoDAL
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first two plots.
+            % radians - Sets the frequency units to Hz or rad/s. The default
+            %           value is 0 which sets the units to Hz. A value of 1 
+            %           sets the units to rad/s. If you are using rad/s, the
+            %           method assumes that minFreq and maxFreq are provided
+            %           in rad/s and not in Hz.
             arguments
                 time1 (:,1) double
                 signal1 (:,1) double
@@ -1508,6 +1575,7 @@ classdef MoDAL
                 options.wtPower double = 1;
                 options.title string = '';
                 options.hideX double = 0;
+                options.radians double {mustBeInRange(options.radians,0,1)} = 0;
             end
             if size(options.force,1) < size(options.force,2)
                 options.force = options.force';
@@ -1535,10 +1603,17 @@ classdef MoDAL
             title(options.title)
 
             % Compute Wavelet Transforms
-            [freq1,mods1] = MoDAL.WaveletSignal(time1,signal1,minFreq,maxFreq, ...
-                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
-            [freq2,mods2] = MoDAL.WaveletSignal(time2,signal2,minFreq,maxFreq, ...
-                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            if options.radians
+                [freq1,mods1] = MoDAL.WaveletSignal(time1/(2*pi),signal1,minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                [freq2,mods2] = MoDAL.WaveletSignal(time2/(2*pi),signal2,minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            else
+                [freq1,mods1] = MoDAL.WaveletSignal(time1,signal1,minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                [freq2,mods2] = MoDAL.WaveletSignal(time2,signal2,minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            end
 
             % Normalize Wavelets
             maxnorm = max([max(max(mods1)) max(max(mods2))]);
@@ -1559,10 +1634,11 @@ classdef MoDAL
             nexttile([1,2])
             MoDAL.FTPlot(time1,signal1,minFreq,maxFreq,force=F1,color=options.firstColor, ...
                 label=options.label,fontSize=options.fontSize, ...
-                linestyle=options.firstLineStyle)
+                linestyle=options.firstLineStyle,radians=options.radians)
             hold on
             MoDAL.FTPlot(time2,signal2,minFreq,maxFreq,force=F2,color=options.secondColor, ...
-                label=options.label,fontSize=options.fontSize,linestyle=options.secondLineStyle)
+                label=options.label,fontSize=options.fontSize, ...
+                linestyle=options.secondLineStyle,radians=options.radians)
             legend(options.legends,options.legendsOpt{:})
 
             if options.hideX; MoDAL.HideX;end
@@ -1618,6 +1694,11 @@ classdef MoDAL
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first two plots.
+            % radians - Sets the frequency units to Hz or rad/s. The default
+            %           value is 0 which sets the units to Hz. A value of 1 
+            %           sets the units to rad/s. If you are using rad/s, the
+            %           method assumes that minFreq and maxFreq are provided
+            %           in rad/s and not in Hz.
             arguments
                 time1 (:,1) double
                 signal1 (:,1) double
@@ -1642,6 +1723,7 @@ classdef MoDAL
                 options.legendsOpt cell = {'Location','northeast','orientation','horizontal'};
                 options.title string = '';
                 options.hideX double = 0;
+                options.radians double {mustBeInRange(options.radians,0,1)} = 0;
             end
 
             figure
@@ -1660,10 +1742,17 @@ classdef MoDAL
             title(options.title)
 
             % Compute Wavelet Transforms
-            [freq1,mods1] = MoDAL.WaveletSignal(time1,signal1,minFreq,maxFreq, ...
-                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
-            [freq2,mods2] = MoDAL.WaveletSignal(time2,signal2,minFreq,maxFreq, ...
-                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            if options.radians
+                [freq1,mods1] = MoDAL.WaveletSignal(time1/(2*pi),signal1,minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                [freq2,mods2] = MoDAL.WaveletSignal(time2/(2*pi),signal2,minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            else
+                [freq1,mods1] = MoDAL.WaveletSignal(time1,signal1,minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                [freq2,mods2] = MoDAL.WaveletSignal(time2,signal2,minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            end
 
             % Normalize Wavelets
             maxnorm = max([max(max(mods1)) max(max(mods2))]);
@@ -1737,6 +1826,11 @@ classdef MoDAL
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first two plots.
+            % radians - Sets the frequency units to Hz or rad/s. The default
+            %           value is 0 which sets the units to Hz. A value of 1 
+            %           sets the units to rad/s. If you are using rad/s, the
+            %           method assumes that minFreq and maxFreq are provided
+            %           in rad/s and not in Hz.
             arguments
                 time1 (:,1) double
                 signal1 (:,1) double
@@ -1763,6 +1857,7 @@ classdef MoDAL
                 options.wtPower double = 1;
                 options.title string = '';
                 options.hideX double = 0;
+                options.radians double {mustBeInRange(options.radians,0,1)} = 0;
             end
 
             figure
@@ -1779,10 +1874,17 @@ classdef MoDAL
             title(options.title)
 
             % Compute Wavelet Transforms
-            [freq1,mods1] = MoDAL.WaveletSignal(time1,signal1,minFreq,maxFreq, ...
-                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
-            [freq2,mods2] = MoDAL.WaveletSignal(time2,signal2,minFreq,maxFreq, ...
-                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            if options.radians
+                [freq1,mods1] = MoDAL.WaveletSignal(time1/(2*pi),signal1,minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                [freq2,mods2] = MoDAL.WaveletSignal(time2/(2*pi),signal2,minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            else
+                [freq1,mods1] = MoDAL.WaveletSignal(time1,signal1,minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                [freq2,mods2] = MoDAL.WaveletSignal(time2,signal2,minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            end
 
             % Normalize Wavelets
             maxnorm = max([max(max(mods1)) max(max(mods2))]);
@@ -1862,7 +1964,11 @@ classdef MoDAL
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first two plots.
-            %
+            % radians - Sets the frequency units to Hz or rad/s. The default
+            %           value is 0 which sets the units to Hz. A value of 1 
+            %           sets the units to rad/s. If you are using rad/s, the
+            %           method assumes that minFreq and maxFreq are provided
+            %           in rad/s and not in Hz.
             arguments
                 time1 (:,1) double
                 signal1 (:,1) double
@@ -1884,6 +1990,7 @@ classdef MoDAL
                 options.legendsOpt cell = {'Location','northeast','orientation','horizontal'};
                 options.title string = '';
                 options.hideX double = 0;
+                options.radians double {mustBeInRange(options.radians,0,1)} = 0;
             end
             if size(options.force,1) < size(options.force,2)
                 options.force = options.force';
@@ -1911,10 +2018,12 @@ classdef MoDAL
 
             nexttile
             MoDAL.FTPlot(time1,signal1,minFreq,maxFreq,force=F1,color=options.firstColor, ...
-                label=options.label,fontSize=options.fontSize,linestyle=options.firstLineStyle)
+                label=options.label,fontSize=options.fontSize,linestyle=options.firstLineStyle, ...
+                radians=options.radians)
             hold on
             MoDAL.FTPlot(time2,signal2,minFreq,maxFreq,force=F2,color=options.secondColor, ...
-                label=options.label,fontSize=options.fontSize,linestyle=options.secondLineStyle)
+                label=options.label,fontSize=options.fontSize,linestyle=options.secondLineStyle, ...
+                radians=options.radians)
             legend(options.legends,options.legendsOpt{:})
             drawnow;
             if options.hideX; MoDAL.HideX;end
@@ -1972,6 +2081,11 @@ classdef MoDAL
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first two plots.
+            % radians - Sets the frequency units to Hz or rad/s. The default
+            %           value is 0 which sets the units to Hz. A value of 1 
+            %           sets the units to rad/s. If you are using rad/s, the
+            %           method assumes that minFreq and maxFreq are provided
+            %           in rad/s and not in Hz.
             arguments
                 time (:,1) double
                 signal (:,1) double
@@ -1997,6 +2111,7 @@ classdef MoDAL
                 options.wtPower double = 1;
                 options.title string = '';
                 options.hideX double = 0;
+                options.radians double {mustBeInRange(options.radians,0,1)} = 0;
             end
 
             figure
@@ -2009,11 +2124,17 @@ classdef MoDAL
             title(options.title)
 
             % Compute Wavelet Transforms
-            [freq1,mods1] = MoDAL.WaveletSignal(time,signal,minFreq,maxFreq, ...
-                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
-            [freq2,mods2] = MoDAL.WaveletSignal(time,signal,zoomMinFreq,zoomMaxFreq, ...
-                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
-
+            if options.radians
+                [freq1,mods1] = MoDAL.WaveletSignal(time/(2*pi),signal,minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                [freq2,mods2] = MoDAL.WaveletSignal(time/(2*pi),signal,zoomMinFreq,zoomMaxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            else
+                [freq1,mods1] = MoDAL.WaveletSignal(time,signal,minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                [freq2,mods2] = MoDAL.WaveletSignal(time,signal,zoomMinFreq,zoomMaxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            end
             % Normalize Wavelets
             maxnorm = max([max(max(mods1)) max(max(mods2))]);
             mods1 = mods1/maxnorm;
@@ -3647,6 +3768,7 @@ classdef MoDAL
                 options.color string = 'k';
                 options.fontSize double = 12;
                 options.linestyle string = '-';
+                options.radians double = 0;
             end
             dt = time(2)-time(1);
             freq = 0:1/(time(end)-time(1)):1/(2*dt);
@@ -3655,16 +3777,24 @@ classdef MoDAL
                 Fx = fft(signal);
                 FF = fft(options.force);
                 FFx = abs(Fx(1:length(freq))./FF(1:length(freq)));
-                semilogy(freq,FFx,options.color,'LineStyle',options.linestyle)
+                if options.radians
+                    semilogy(2*pi*freq,FFx,options.color,'LineStyle',options.linestyle)
+                else
+                    semilogy(freq,FFx,options.color,'LineStyle',options.linestyle)
+                end
                 MoDAL.YLabel(options.label,1)
             else
                 Fx = fft(signal);
                 FFx = abs(Fx(1:length(freq)));
-                semilogy(freq,FFx,options.color,'LineStyle',options.linestyle)
+                if options.radians
+                    semilogy(2*pi*freq,FFx,options.color,'LineStyle',options.linestyle)
+                else
+                    semilogy(freq,FFx,options.color,'LineStyle',options.linestyle)
+                end
                 MoDAL.YLabel(options.label)
             end
             xlim([minFreq maxFreq])
-            MoDAL.FreqLabel(options.label)
+            MoDAL.FreqLabel(options.label,options.radians)
             set(gca,'FontSize',options.fontSize)
         end
 
@@ -3677,10 +3807,15 @@ classdef MoDAL
                 options.label string = '';
                 options.color string = 'k';
                 options.fontSize double = 12;
+                options.radians double = 0;
             end
-            plot(freq,maxmods,options.color)
+            if options.radians
+                plot(2*pi*freq,maxmods,options.color)
+            else
+                plot(freq,maxmods,options.color)
+            end
             xlim([minFreq maxFreq])
-            MoDAL.FreqLabel(options.label)
+            MoDAL.FreqLabel(options.label,options.radians)
             ylabel('Norm. Ampl. [\cdot]')
             set(gca,'FontSize',options.fontSize)
         end
@@ -3689,7 +3824,7 @@ classdef MoDAL
             imagesc(time,freq,(mods').^options.wtPower)
             set(gca,'ydir','nor')
             colormap(options.colorMap)
-            MoDAL.WTLabel(options.label)
+            MoDAL.WTLabel(options.label,options.radians)
             xlim([options.timeStart options.timeEnd])
             set(gca,'FontSize',options.fontSize)
         end
@@ -3702,21 +3837,30 @@ classdef MoDAL
             end
         end
 
-        function WTLabel(label)
+        function WTLabel(label,radians)
             if contains(label,'ND')
                 xlabel('Time [\cdot]')
                 ylabel('Freq. [\cdot]')
             else
-                xlabel('Time [s]')
-                ylabel('Freq. [Hz]')
+                if radians
+                    xlabel('Time [s]')
+                    ylabel('Freq. [rad/s]')
+                else
+                    xlabel('Time [s]')
+                    ylabel('Freq. [Hz]')
+                end
             end
         end
 
-        function FreqLabel(label)
+        function FreqLabel(label,radians)
             if contains(label,'ND')
                 xlabel('Frequency [\cdot]')
             else
-                xlabel('Frequency [Hz]')
+                if radians
+                    xlabel('Frequency [rad/s]')
+                else
+                    xlabel('Frequency [Hz]')
+                end
             end
         end
 

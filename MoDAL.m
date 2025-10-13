@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.24";
+        Version = "1.3.25";
     end
 
     methods(Static)
@@ -1334,9 +1334,13 @@ classdef MoDAL
             title(options.title)
 
             % Compute the WT
-            [freq,mods] = MoDAL.WaveletSignal(time,signal,minFreq,maxFreq, ...
-                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
-            mods = mods/max(mods,[],'All');
+            if options.radians
+                [freq,mods] = MoDAL.WaveletSignal(time/(2*pi),signal,minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            else
+                [freq,mods] = MoDAL.WaveletSignal(time,signal,minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            end
 
             % Plot the WT
             nexttile

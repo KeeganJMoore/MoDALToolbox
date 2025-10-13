@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.25";
+        Version = "1.3.26";
     end
 
     methods(Static)
@@ -142,7 +142,7 @@ classdef MoDAL
             % timeStart - lower x-limit for zoomed-in view
             % timeEnd - upper x-limit for zoomed-in view
             % nonDim - 0 sets units to dimensional
-            %        - 1 sets units to nondimensional (uses \cdot)
+            %        - 1 sets units to nondimensional (uses ·)
             % forceUnits - character vector that specifies the force units.
             %              nonDim overrides this option.
             % timeUnits - character vector that specifies the time units.
@@ -162,8 +162,8 @@ classdef MoDAL
             tStartSpecified = 1;
             tEndSpecified = 1;
             if options.nonDim == 1
-                options.forceUnits = '\cdot';
-                options.timeUnits = '\cdot';
+                options.forceUnits = '·';
+                options.timeUnits = '·';
             end
             if ~isfield(options,"timeStart")
                 idx = findchangepts(force,"MaxNumChanges",2);
@@ -2553,33 +2553,33 @@ classdef MoDAL
             % dispmm        =>   Disp. [mm]
             % dispin        =>   Disp. [in]
             % dispft        =>   Disp. [ft]
-            % dispnd        =>   Disp. [\cdot] (non-dimensional)
+            % dispnd        =>   Disp. [·] (non-dimensional)
             % vel           =>   Vel. [m/s]
             % velmm         =>   Vel. [mm/s]
             % velin         =>   Vel. [in/s]
             % velft         =>   Vel. [ft/s]
-            % velnd         =>   Vel. [\cdot] (non-dimensional)
+            % velnd         =>   Vel. [·] (non-dimensional)
             % accmm         =>   Acc. [mm/s^2]
             % acc           =>   Acc. [m/s^2]
             % accin         =>   Acc. [in/s^2]
             % accft         =>   Acc. [ft/s^2]
-            % accnd         =>   Acc. [\cdot] (non-dimensional)
+            % accnd         =>   Acc. [·] (non-dimensional)
             % force         =>   Force [N]
             % forcekn       =>   Force [kN]
             % forcelb       =>   Force [lb]
             % forcekip      =>   Force [kip]
-            % forcend       =>   Force [\cdot] (non-dimensional)
+            % forcend       =>   Force [·] (non-dimensional)
             % tension       =>   Tension [N]
             % tensionkn     =>   Tension [kN]
             % tensionlb     =>   Tension [lb]
             % tensionkip    =>   Tension [kip]
-            % tensionnd     =>   Tension [\cdot] (non-dimensional)
-            % modal         =>   Amplitude [\cdot]
+            % tensionnd     =>   Tension [·] (non-dimensional)
+            % modal         =>   Amplitude [·]
             % strain        =>   Strain [m/m]
             % microstrain   =>   Strain [\mum/m]
             % strainin      =>   Strain [in/in]
             % strainft      =>   Strain [ft/ft]
-            % imf           =>   Amplitude [\cdot]
+            % imf           =>   Amplitude [·]
             % imfdm         =>   Amplitude [m]
             % imfdmm        =>   Amplitude [mm]
             % imfdin        =>   Amplitude [in]
@@ -2610,7 +2610,7 @@ classdef MoDAL
                     case 'dispmm'
                         ylabel('Disp. [mm]')
                     case 'dispnd'
-                        ylabel('Disp. [\cdot]')
+                        ylabel('Disp. [·]')
                     case 'vel'
                         ylabel('Vel. [m/s]')
                     case 'velmm'
@@ -2620,7 +2620,7 @@ classdef MoDAL
                     case 'velft'
                         ylabel('Vel. [ft/s]')
                     case 'velnd'
-                        ylabel('Vel. [\cdot]')
+                        ylabel('Vel. [·]')
                     case 'acc'
                         ylabel('Acc. [m/s^2]')
                     case 'accmm'
@@ -2630,7 +2630,7 @@ classdef MoDAL
                     case 'accft'
                         ylabel('Acc. [ft/s^2]')
                     case 'accnd'
-                        ylabel('Acc. [\cdot]')
+                        ylabel('Acc. [·]')
                     case 'force'
                         ylabel('Force [N]')
                     case 'forcekn'
@@ -2640,7 +2640,7 @@ classdef MoDAL
                     case 'forcekip'
                         ylabel('Force [kip]')
                     case 'forcend'
-                        ylabel('Force [\cdot]')
+                        ylabel('Force [·]')
                     case 'tension'
                         ylabel('Tension [N]')
                     case 'tensionkn'
@@ -2650,9 +2650,9 @@ classdef MoDAL
                     case 'tensionkip'
                         ylabel('Tension [kip]')
                     case 'tensionnd'
-                        ylabel('Tension [\cdot]')
+                        ylabel('Tension [·]')
                     case 'modal'
-                        ylabel('Amplitude [\cdot]')
+                        ylabel('Amplitude [·]')
                     case 'strain'
                         ylabel('Strain [m/m]')
                     case 'microstrain'
@@ -2662,7 +2662,7 @@ classdef MoDAL
                     case 'strainft'
                         ylabel('Strain [ft/ft]')
                     case 'imf'
-                        ylabel('Amplitude [\cdot]')
+                        ylabel('Amplitude [·]')
                     case 'imfdm'
                         ylabel('Amplitude [m]')
                     case 'imfdmm'
@@ -2701,7 +2701,7 @@ classdef MoDAL
                         ylabel('Phase Velocity [rad/s]')
                     otherwise
                         if isempty(Label)
-                            ylabel('Signal [\cdot]')
+                            ylabel('Signal [·]')
                         else
                             ylabel(Label)
                         end
@@ -3820,7 +3820,7 @@ classdef MoDAL
             end
             xlim([minFreq maxFreq])
             MoDAL.FreqLabel(options.label,options.radians)
-            ylabel('Norm. Ampl. [\cdot]')
+            ylabel('Norm. Ampl. [·]')
             set(gca,'FontSize',options.fontSize)
         end
 
@@ -3835,7 +3835,7 @@ classdef MoDAL
 
         function TimeLabel(label)
             if contains(label,'ND')
-                xlabel('Time [\cdot]')
+                xlabel('Time [·]')
             else
                 xlabel('Time [s]')
             end
@@ -3843,8 +3843,8 @@ classdef MoDAL
 
         function WTLabel(label,radians)
             if contains(label,'ND')
-                xlabel('Time [\cdot]')
-                ylabel('Freq. [\cdot]')
+                xlabel('Time [·]')
+                ylabel('Freq. [·]')
             else
                 if radians
                     xlabel('Time [s]')
@@ -3858,7 +3858,7 @@ classdef MoDAL
 
         function FreqLabel(label,radians)
             if contains(label,'ND')
-                xlabel('Frequency [\cdot]')
+                xlabel('Frequency [·]')
             else
                 if radians
                     xlabel('Frequency [rad/s]')

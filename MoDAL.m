@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.27";
+        Version = "1.4.0";
     end
 
     methods(Static)
@@ -448,7 +448,10 @@ classdef MoDAL
             forceChar = "Newton";
             accChar = "m/s^2 ";
             strainChar = "ε     ";
+            currentChar = "A     ";
+            voltageChar = "V     ";
             % velChar = "m/s   ";
+            
 
             A = dir;
             u = 1;
@@ -466,7 +469,7 @@ classdef MoDAL
                                 Qa = textscan(File1,'%s',300);
                                 S1 = find(strcmp(Qa{:},'Unit:'),1,'last');
                                 S2 = find(strcmp(Qa{:},'X(s)'));
-                                Units = string(char(Qa{:}{S1+1:S2-1}));
+                                Units = string(char(Qa{:}{S1+1:S2-1}))
                                 fclose(File1);
 
                             end
@@ -477,14 +480,19 @@ classdef MoDAL
 
                             strainCount = logical(count(Units,strainChar));
                             accCount = logical(count(Units,accChar));
+                            % velCount = logical(count(Units,velChar));
+                            currCount = logical(count(Units,currentChar));
+                            voltCount = logical(count(Units,voltageChar));
                             
                             forceCount = logical(count(Units,forceChar));
                             ForceTemp(:,:,u) = dataMat(1:tB,forceCount);
                             AccTemp(:,:,u) = dataMat(1:tB,accCount);
                             StrainTemp(:,:,u) = dataMat(1:tB,strainCount);
-                            
-                            % VelTemp(:,:,u) = detrend(dataMat(1:tB,velCount));
+                            VoltTemp(:,:,u) = dataMat(1:tB,voltCount);
+                            CurrentTemp(:,:,u) = dataMat(1:tB,currCount);
                             % velCount = logical(count(Units,velChar));
+                            % VelTemp(:,:,u) = detrend(dataMat(1:tB,velCount));
+                            
 
                             u = u+1;
                         end
@@ -501,6 +509,8 @@ classdef MoDAL
                     Force = 0*ForceTemp;
                     Acc = 0*AccTemp;
                     Strain = 0*StrainTemp;
+                    Voltage = 0*VoltTemp;
+                    Current = 0*CurrentTemp;
                     Sortu = [(1:u-1)' MaxForces];
                     Sortu = sortrows(Sortu,2);
                     SortOrder = zeros(length(Sortu),2);
@@ -509,21 +519,29 @@ classdef MoDAL
                         Force(:,:,i) = ForceTemp(:,:,Sortu(i,1));
                         Acc(:,:,i) = AccTemp(:,:,Sortu(i,1));
                         Strain(:,:,i) = StrainTemp(:,:,Sortu(i,1));
+                        Voltage(:,:,i) = VoltTemp(:,:,Sortu(i,1));
+                        Current(:,:,i) = CurrentTemp(:,:,Sortu(i,1));
                     end
                     Data.SortOrder = SortOrder;
                 else
                     Force = ForceTemp;
                     Acc = AccTemp;
                     Strain = StrainTemp;
+                    Current = CurrentTemp;
+                    Voltage = VoltTemp;
                 end
             else
                 Force = ForceTemp;
                 Acc = AccTemp;
                 Strain = StrainTemp;
+                Current = CurrentTemp;
+                Voltage = VoltTemp;
             end
             Force = squeeze(Force);
             Acc = squeeze(Acc);
             Strain = squeeze(Strain);
+            Current = squeeze(Current);
+            Voltage = squeeze(Voltage);
 
             % Detrend the measurements to remove DC offsets
             if options.Detrend == 1
@@ -550,6 +568,8 @@ classdef MoDAL
             Data.Order = options.order;
             Data.CutOffFreq = options.cutOffFreq;
             Data.TimeEnd = Data.Time(end);
+            Data.Voltage = Voltage;
+            Data.Current = Current;
 
             if options.forceFilter
                 Fc = 16384/Fnyq;
@@ -1041,18 +1061,20 @@ classdef MoDAL
             
 
             % Compute WT
+            tA = sum(time <= options.timeStart);
+            tB = sum(time <= options.timeEnd);
             if options.radians
-                [freq,mods] = MoDAL.WaveletSignal(time/(2*pi),signal,minFreq,maxFreq, ...
+                [freq,mods] = MoDAL.WaveletSignal(time(tA:tB)/(2*pi),signal(tA:tB),minFreq,maxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
             else
-                [freq,mods] = MoDAL.WaveletSignal(time,signal,minFreq,maxFreq, ...
+                [freq,mods] = MoDAL.WaveletSignal(time(tA:tB),signal(tA:tB),minFreq,maxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
             end
             mods = mods/max(mods,[],'All');
 
             % Plot WT
             nexttile
-            MoDAL.WTSpectraPlot(time,freq,mods,options)
+            MoDAL.WTSpectraPlot(time(tA:tB),freq,mods,options)
 
 
             if options.hideX;MoDAL.HideX;end
@@ -1142,18 +1164,20 @@ classdef MoDAL
             title(options.title)
 
             % Compute WT
+            tA = sum(time <= options.timeStart);
+            tB = sum(time <= options.timeEnd);
             if options.radians
-                [freq,mods] = MoDAL.WaveletSignal(time/(2*pi),signal,minFreq,maxFreq, ...
+                [freq,mods] = MoDAL.WaveletSignal(time(tA:tB)/(2*pi),signal(tA:tB),minFreq,maxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
             else
-                [freq,mods] = MoDAL.WaveletSignal(time,signal,minFreq,maxFreq, ...
+                [freq,mods] = MoDAL.WaveletSignal(time(tA:tB),signal(tA:tB),minFreq,maxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
             end
             mods = mods/max(mods,[],'All');
 
             % Plot WT
             nexttile
-            MoDAL.WTSpectraPlot(time,freq,mods,options)
+            MoDAL.WTSpectraPlot(time(tA:tB),freq,mods,options)
 
             % Plot FFT/FRF
             nexttile
@@ -1237,11 +1261,13 @@ classdef MoDAL
             title(options.title)
 
             % Compute WT
+            tA = sum(time <= options.timeStart);
+            tB = sum(time <= options.timeEnd);
             if options.radians
-                [freq,mods] = MoDAL.WaveletSignal(time/(2*pi),signal,minFreq,maxFreq, ...
+                [freq,mods] = MoDAL.WaveletSignal(time(tA:tB)/(2*pi),signal(tA:tB),minFreq,maxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
             else
-                [freq,mods] = MoDAL.WaveletSignal(time,signal,minFreq,maxFreq, ...
+                [freq,mods] = MoDAL.WaveletSignal(time(tA:tB),signal(tA:tB),minFreq,maxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
             end
             mods = mods/max(mods,[],'All');
@@ -1334,17 +1360,19 @@ classdef MoDAL
             title(options.title)
 
             % Compute the WT
+            tA = sum(time <= options.timeStart);
+            tB = sum(time <= options.timeEnd);
             if options.radians
-                [freq,mods] = MoDAL.WaveletSignal(time/(2*pi),signal,minFreq,maxFreq, ...
+                [freq,mods] = MoDAL.WaveletSignal(time(tA:tB)/(2*pi),signal(tA:tB),minFreq,maxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
             else
-                [freq,mods] = MoDAL.WaveletSignal(time,signal,minFreq,maxFreq, ...
+                [freq,mods] = MoDAL.WaveletSignal(time(tA:tB),signal(tA:tB),minFreq,maxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
             end
 
             % Plot the WT
             nexttile
-            MoDAL.WTSpectraPlot(time,freq,mods,options)
+            MoDAL.WTSpectraPlot(time(tA:tB),freq,mods,options)
 
             % Plot the MWT
             nexttile
@@ -1460,15 +1488,19 @@ classdef MoDAL
             title(options.title)
 
             % Compute Wavelet Transforms
+            tA1 = sum(time1 <= options.timeStart);
+            tB1 = sum(time1 <= options.timeEnd);
+            tA2 = sum(time2 <= options.timeStart);
+            tB2 = sum(time2 <= options.timeEnd);
             if options.radians
-                [freq1,mods1] = MoDAL.WaveletSignal(time1/(2*pi),signal1,minFreq,maxFreq, ...
+                [freq1,mods1] = MoDAL.WaveletSignal(time1(tA1:tB1)/(2*pi),signal1,minFreq,maxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
-                [freq2,mods2] = MoDAL.WaveletSignal(time2/(2*pi),signal2,minFreq,maxFreq, ...
+                [freq2,mods2] = MoDAL.WaveletSignal(time2(tA2:tB2)/(2*pi),signal2(tA2:tB2),minFreq,maxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
             else
-                [freq1,mods1] = MoDAL.WaveletSignal(time1,signal1,minFreq,maxFreq, ...
+                [freq1,mods1] = MoDAL.WaveletSignal(time1(tA1:tB1),signal1,minFreq,maxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
-                [freq2,mods2] = MoDAL.WaveletSignal(time2,signal2,minFreq,maxFreq, ...
+                [freq2,mods2] = MoDAL.WaveletSignal(time2(tA2:tB2),signal2(tA2:tB2),minFreq,maxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
             end
 
@@ -1479,12 +1511,12 @@ classdef MoDAL
 
             % Plot Wavelets
             nexttile
-            MoDAL.WTSpectraPlot(time1,freq1,mods1,options)
+            MoDAL.WTSpectraPlot(time1(tA1:tB1),freq1,mods1,options)
             clim([0 1])
             title(options.legends{1})
 
             nexttile
-            MoDAL.WTSpectraPlot(time2,freq2,mods2,options)
+            MoDAL.WTSpectraPlot(time2(tA2:tB2),freq2,mods2,options)
             clim([0 1])
             title(options.legends{2})
             if options.hideX; MoDAL.HideX;end
@@ -1617,15 +1649,19 @@ classdef MoDAL
             title(options.title)
 
             % Compute Wavelet Transforms
+            tA1 = sum(time1 <= options.timeStart);
+            tB1 = sum(time1 <= options.timeEnd);
+            tA2 = sum(time2 <= options.timeStart);
+            tB2 = sum(time2 <= options.timeEnd);
             if options.radians
-                [freq1,mods1] = MoDAL.WaveletSignal(time1/(2*pi),signal1,minFreq,maxFreq, ...
+                [freq1,mods1] = MoDAL.WaveletSignal(time1(tA1:tB1)/(2*pi),signal1(tA1:tB1),minFreq,maxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
                 [freq2,mods2] = MoDAL.WaveletSignal(time2/(2*pi),signal2,minFreq,maxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
             else
-                [freq1,mods1] = MoDAL.WaveletSignal(time1,signal1,minFreq,maxFreq, ...
+                [freq1,mods1] = MoDAL.WaveletSignal(time1(tA1:tB1),signal1(tA1:tB1),minFreq,maxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
-                [freq2,mods2] = MoDAL.WaveletSignal(time2,signal2,minFreq,maxFreq, ...
+                [freq2,mods2] = MoDAL.WaveletSignal(time2(tA2:tB2),signal2(tA2:tB2),minFreq,maxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
             end
 
@@ -1636,12 +1672,12 @@ classdef MoDAL
 
             % Plot Wavelets
             nexttile([1,1])
-            MoDAL.WTSpectraPlot(time1,freq1,mods1,options)
+            MoDAL.WTSpectraPlot(time1(tA1:tB1),freq1,mods1,options)
             title(options.legends{1})
             clim([0 1])
 
             nexttile([1,1])
-            MoDAL.WTSpectraPlot(time2,freq2,mods2,options)
+            MoDAL.WTSpectraPlot(time2(tA2:tB2),freq2,mods2,options)
             title(options.legends{2})
             clim([0 1])
 
@@ -1913,15 +1949,19 @@ classdef MoDAL
             title(options.title)
 
             % Compute Wavelet Transforms
+            tA1 = sum(time1 <= options.timeStart);
+            tB1 = sum(time1 <= options.timeEnd);
+            tA2 = sum(time2 <= options.timeStart);
+            tB2 = sum(time2 <= options.timeEnd);
             if options.radians
-                [freq1,mods1] = MoDAL.WaveletSignal(time1/(2*pi),signal1,minFreq,maxFreq, ...
+                [freq1,mods1] = MoDAL.WaveletSignal(time1(tA1:tB1)/(2*pi),signal1(tA1:tB1),minFreq,maxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
-                [freq2,mods2] = MoDAL.WaveletSignal(time2/(2*pi),signal2,minFreq,maxFreq, ...
+                [freq2,mods2] = MoDAL.WaveletSignal(time2(tA2:tB2)/(2*pi),signal2(tA2:tB2),minFreq,maxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
             else
-                [freq1,mods1] = MoDAL.WaveletSignal(time1,signal1,minFreq,maxFreq, ...
+                [freq1,mods1] = MoDAL.WaveletSignal(time1(tA1:tB1),signal1(tA1:tB1),minFreq,maxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
-                [freq2,mods2] = MoDAL.WaveletSignal(time2,signal2,minFreq,maxFreq, ...
+                [freq2,mods2] = MoDAL.WaveletSignal(time2(tA2:tB2),signal2(tA2:tB2),minFreq,maxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
             end
 
@@ -1932,11 +1972,11 @@ classdef MoDAL
 
             % Plot Wavelets
             nexttile([1,1])
-            MoDAL.WTSpectraPlot(time1,freq1,mods1,options)
+            MoDAL.WTSpectraPlot(time1(tA1:tB1),freq1,mods1,options)
             title(options.legends{1})
 
             nexttile([1,1])
-            MoDAL.WTSpectraPlot(time2,freq2,mods2,options)
+            MoDAL.WTSpectraPlot(time2(tA2:tB2),freq2,mods2,options)
             title(options.legends{2})
 
             % Plot MWT
@@ -2177,15 +2217,17 @@ classdef MoDAL
             title(options.title)
 
             % Compute Wavelet Transforms
+            tA = sum(time <= options.timeStart);
+            tB = sum(time <= options.timeEnd);
             if options.radians
-                [freq1,mods1] = MoDAL.WaveletSignal(time/(2*pi),signal,minFreq,maxFreq, ...
+                [freq1,mods1] = MoDAL.WaveletSignal(time(tA:tB)/(2*pi),signal(tA:tB),minFreq,maxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
-                [freq2,mods2] = MoDAL.WaveletSignal(time/(2*pi),signal,zoomMinFreq,zoomMaxFreq, ...
+                [freq2,mods2] = MoDAL.WaveletSignal(time(tA:tB)/(2*pi),signal(tA:tB),zoomMinFreq,zoomMaxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
             else
-                [freq1,mods1] = MoDAL.WaveletSignal(time,signal,minFreq,maxFreq, ...
+                [freq1,mods1] = MoDAL.WaveletSignal(time(tA:tB),signal(tA:tB),minFreq,maxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
-                [freq2,mods2] = MoDAL.WaveletSignal(time,signal,zoomMinFreq,zoomMaxFreq, ...
+                [freq2,mods2] = MoDAL.WaveletSignal(time(tA:tB),signal(tA:tB),zoomMinFreq,zoomMaxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
             end
             % Normalize Wavelets
@@ -2195,11 +2237,11 @@ classdef MoDAL
 
             % Plot Wavelets
             nexttile
-            MoDAL.WTSpectraPlot(time,freq1,mods1,options)
+            MoDAL.WTSpectraPlot(time(tA:tB),freq1,mods1,options)
             clim([0 1])
 
             nexttile
-            MoDAL.WTSpectraPlot(time,freq2,mods2,options)
+            MoDAL.WTSpectraPlot(time(tA:tB),freq2,mods2,options)
             clim([0 1])
             if options.hideX; MoDAL.HideX;end
         end
@@ -2655,7 +2697,7 @@ classdef MoDAL
                     case 'dispin'
                         ylabel('Disp. [in]')
                     case 'dispft'
-                        ylabel('Disp. [in]')
+                        ylabel('Disp. [ft]')
                     case 'dispmm'
                         ylabel('Disp. [mm]')
                     case 'dispnd'
@@ -3432,29 +3474,29 @@ classdef MoDAL
         function [x_mirror, t_mirror] = MirrorImgSigOIni(t, x)
             % Generate the mirror image signal by an odd symmetry about t=t0
             L = length(t); xtmp = x - x(1);
-            t_mirror = [-(t(L:-1:2)-t(1))+t(1)];
-            x_mirror = [-xtmp(L:-1:2)+x(1)];
+            t_mirror = -(t(L:-1:2)-t(1))+t(1);
+            x_mirror = -xtmp(L:-1:2)+x(1);
         end
 
         function [x_mirror, t_mirror] = MirrorImgSigEIni(t, x)
             % Generate the mirror image signal by an even symmetry about t=t0
             L = length(t); xtmp = x - x(1);
-            t_mirror = [-(t(L:-1:2)-t(1))+t(1)];
-            x_mirror = [xtmp(L:-1:2)+x(1)];
+            t_mirror = -(t(L:-1:2)-t(1))+t(1);
+            x_mirror = xtmp(L:-1:2)+x(1);
         end
 
         function [x_mirror, t_mirror] = MirrorImgSigOFin(t, x)
             % Generate the mirror image signal by an odd symmetry about t=tf
             dt = t(2)-t(1); L = length(t); xtmp = x - x(end);
-            t_mirror = [t(end)+dt*[1:L-1]'];
-            x_mirror = [-xtmp(end-1:-1:end-L+1)+x(end)];
+            t_mirror = t(end)+dt*(1:L-1)';
+            x_mirror = -xtmp(end-1:-1:end-L+1)+x(end);
         end
 
         function [x_mirror, t_mirror] = MirrorImgSigEFin(t, x)
             % Generate the mirror image signal by an even symmetry about t=tf
             dt = t(2)-t(1); L = length(t); xtmp = x - x(end);
-            t_mirror = [t(end)+dt*[1:L-1]'];
-            x_mirror = [xtmp(end-1:-1:end-L+1)+x(end)];
+            t_mirror = t(end)+dt*(1:L-1)';
+            x_mirror = xtmp(end-1:-1:end-L+1)+x(end);
         end
 
         function [x_mirror,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd] = ...

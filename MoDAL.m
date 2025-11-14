@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.4.0";
+        Version = "1.4.1";
     end
 
     methods(Static)
@@ -585,7 +585,7 @@ classdef MoDAL
         function [f,Fx] = ComputeFFT(time,signal)
             dt = time(2)-time(1);
             L = length(time);
-            f = 1/dt*(0:L/2)/L;
+            f = 1/dt*(0:(L/2-1))/L;
             Fx = fft(signal,L);
         end
 
@@ -826,7 +826,7 @@ classdef MoDAL
 
             dt = time(2)-time(1);
             L = length(time);
-            f = 1/dt*(0:L/2)/L;
+            f = 1/dt*(0:(L/2-1))/L;
             FFx = fft(signal);
             Phase = unwrap(angle(FFx(1:length(f))));
             FFx = abs(FFx(1:length(f)));
@@ -877,7 +877,7 @@ classdef MoDAL
             end
             dt = time(2)-time(1);
             L = length(time);
-            f = 1/dt*(0:L/2)/L;
+            f = 1/dt*(0:(L/2-1))/L;
             Fx = 2/L*fft(signal,L);
             FF = 2/L*fft(Force,L);
             Phase = Fx(1:length(f))./FF(1:length(f));
@@ -1651,8 +1651,8 @@ classdef MoDAL
             % Compute Wavelet Transforms
             tA1 = sum(time1 <= options.timeStart);
             tB1 = sum(time1 <= options.timeEnd);
-            tA2 = sum(time2 <= options.timeStart);
-            tB2 = sum(time2 <= options.timeEnd);
+            tA2 = sum(time2 <= max(options.timeStart,time2(1)));
+            tB2 = sum(time2 <= min(options.timeEnd,time2(end)));
             if options.radians
                 [freq1,mods1] = MoDAL.WaveletSignal(time1(tA1:tB1)/(2*pi),signal1(tA1:tB1),minFreq,maxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
@@ -2467,7 +2467,7 @@ classdef MoDAL
             ntemps = length(time);
             power2 = nextpow2(ntemps);
             L = 2^power2;
-            f = 1/dt*(0:L/2)/L;
+            f = 1/dt*(0:(L/2-1))/L;
 
             % Compute FFT of x
             xFFT = fft(signal,L);

@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.4.1";
+        Version = "1.4.2";
     end
 
     methods(Static)
@@ -452,7 +452,7 @@ classdef MoDAL
             voltageChar = "V     ";
             % velChar = "m/s   ";
             
-
+            
             A = dir;
             u = 1;
             for ij = 1:length(A)
@@ -467,15 +467,34 @@ classdef MoDAL
                             if u == 1
                                 File1 = fopen(FName1);
                                 Qa = textscan(File1,'%s',300);
+                                S0 = find(strcmp(Qa{:},'Unit:'),1,'first');
                                 S1 = find(strcmp(Qa{:},'Unit:'),1,'last');
-                                S2 = find(strcmp(Qa{:},'X(s)'));
-                                Units = string(char(Qa{:}{S1+1:S2-1}))
+                                TimeUnits = string(char(Qa{:}(S0+1)));
+                               
+                                if strcmp(TimeUnits,"s")
+                                    S2 = find(strcmp(Qa{:},'X(s)')); 
+                                    TimeScale = 1;
+                                elseif strcmp(TimeUnits,"ms")
+                                    S2 = find(strcmp(Qa{:},'X(ms)'));
+                                    TimeScale = 1/1000;
+                                end
+
+                                if options.textFileName == 'SIG'
+                                    S3 = find(strcmp(Qa{:},'Size:'),1);
+                                    BlockSize = double(string(char(Qa{:}(S3+1))));
+                                end
+
+                                Units = string(char(Qa{:}{S1+1:S2-1}));
                                 fclose(File1);
 
                             end
                             dataMat = readmatrix(FName1,"NumHeaderLines",options.numHeaderLines);
-                            Time = dataMat(:,1);
-                            tB = sum(Time <= options.endTime);
+                            Time = dataMat(:,1)*TimeScale;
+                            if options.textFileName == 'SIG'
+                                tB = BlockSize;
+                            else
+                                tB = sum(Time <= options.endTime);
+                            end
                             dataMat = dataMat(:,2:end);
 
                             strainCount = logical(count(Units,strainChar));
@@ -500,6 +519,7 @@ classdef MoDAL
                 end
             end
             Time = Time(1:tB);
+
 
             % Sort the runs by the applied force if desired
             if sum(forceCount) == 1
@@ -798,6 +818,7 @@ classdef MoDAL
             % specific set of modes instead of the first through L1 mode.
             Am = EigenVectors(index,:);
             T = EigenVectors*pinv(Am);
+            
             MR = T'*M*T;
             KR = T'*K*T;
             CR = T'*C*T;
@@ -1493,12 +1514,12 @@ classdef MoDAL
             tA2 = sum(time2 <= options.timeStart);
             tB2 = sum(time2 <= options.timeEnd);
             if options.radians
-                [freq1,mods1] = MoDAL.WaveletSignal(time1(tA1:tB1)/(2*pi),signal1,minFreq,maxFreq, ...
+                [freq1,mods1] = MoDAL.WaveletSignal(time1(tA1:tB1)/(2*pi),signal1(tA1:tB1),minFreq,maxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
                 [freq2,mods2] = MoDAL.WaveletSignal(time2(tA2:tB2)/(2*pi),signal2(tA2:tB2),minFreq,maxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
             else
-                [freq1,mods1] = MoDAL.WaveletSignal(time1(tA1:tB1),signal1,minFreq,maxFreq, ...
+                [freq1,mods1] = MoDAL.WaveletSignal(time1(tA1:tB1),signal1(tA1:tB1),minFreq,maxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
                 [freq2,mods2] = MoDAL.WaveletSignal(time2(tA2:tB2),signal2(tA2:tB2),minFreq,maxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
@@ -1651,12 +1672,12 @@ classdef MoDAL
             % Compute Wavelet Transforms
             tA1 = sum(time1 <= options.timeStart);
             tB1 = sum(time1 <= options.timeEnd);
-            tA2 = sum(time2 <= max(options.timeStart,time2(1)));
-            tB2 = sum(time2 <= min(options.timeEnd,time2(end)));
+            tA2 = sum(time2 <= options.timeStart);
+            tB2 = sum(time2 <= time2(end));
             if options.radians
                 [freq1,mods1] = MoDAL.WaveletSignal(time1(tA1:tB1)/(2*pi),signal1(tA1:tB1),minFreq,maxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
-                [freq2,mods2] = MoDAL.WaveletSignal(time2/(2*pi),signal2,minFreq,maxFreq, ...
+                [freq2,mods2] = MoDAL.WaveletSignal(time2(tA2:tB2)/(2*pi),signal2(tA2:tB2),minFreq,maxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
             else
                 [freq1,mods1] = MoDAL.WaveletSignal(time1(tA1:tB1),signal1(tA1:tB1),minFreq,maxFreq, ...

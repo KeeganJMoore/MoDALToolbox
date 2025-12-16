@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.4.3";
+        Version = "1.4.4";
     end
 
     methods(Static)
@@ -2997,15 +2997,9 @@ classdef MoDAL
                 options.mirrorChop1 cell = {};
                 options.mirrorChop2 cell = {};
                 options.Mirror struct = [];
-                options.parallel double = 0;
             end
             if ~isfield(options.Mirror,'On'); options.Mirror(1).On = 0; end
-            if options.parallel == 1
-                p = gcp;
-                arg = p.NumWorkers;
-            else
-                arg = 0;
-            end
+
 
             % Wavelet Parameters
             numFreq = options.numFreq;
@@ -3019,12 +3013,10 @@ classdef MoDAL
 
             NumIMFs = 0;
             NumMaskSig = 0;
-            parfor (b = 1:M, arg)
-                % if b > 1
-                %     % clear('X_emd','masksig')
-                %     X_emd = [];
-                %     masksig = [];
-                % end
+            for b = 1:M
+                if b > 1
+                    clear('X_emd','masksig')
+                end
 
                 iterMaxFreq = maxFreq;
 

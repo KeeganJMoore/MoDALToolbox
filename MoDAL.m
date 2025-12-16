@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.4.2";
+        Version = "1.4.3";
     end
 
     methods(Static)
@@ -43,7 +43,7 @@ classdef MoDAL
             if ~isfile(destination3); websave(destination3,url2); end
             if ~isfile(destination4); websave(destination4,url3); end
             if ~isfile(destination5); websave(destination5,url4); end
-        
+
 
             destination = fullfile([userpath '/'],'startup.m');
 
@@ -233,7 +233,7 @@ classdef MoDAL
 
         function Phi = MassOrthonormalize(massMatrix,modeShapes)
             % This code mass-orthnormalizes a set of mode shapes for a given mass matrix.
-            % 
+            %
             % Required Inputs
             % ---------------------------------------------
             % massMatrix - The mass matrix for the system.
@@ -401,8 +401,8 @@ classdef MoDAL
             %          is 0, which enables saving.
             % Detrend - Applies the detrend function to force and acceleration data.
             %           Default is on.
-            % StrainDetrend – Applies the detrend function to strain data. The 
-            %                 Default is off. 
+            % StrainDetrend – Applies the detrend function to strain data. The
+            %                 Default is off.
             %
             % Outputs
             % -------
@@ -451,8 +451,8 @@ classdef MoDAL
             currentChar = "A     ";
             voltageChar = "V     ";
             % velChar = "m/s   ";
-            
-            
+
+
             A = dir;
             u = 1;
             for ij = 1:length(A)
@@ -470,9 +470,9 @@ classdef MoDAL
                                 S0 = find(strcmp(Qa{:},'Unit:'),1,'first');
                                 S1 = find(strcmp(Qa{:},'Unit:'),1,'last');
                                 TimeUnits = string(char(Qa{:}(S0+1)));
-                               
+
                                 if strcmp(TimeUnits,"s")
-                                    S2 = find(strcmp(Qa{:},'X(s)')); 
+                                    S2 = find(strcmp(Qa{:},'X(s)'));
                                     TimeScale = 1;
                                 elseif strcmp(TimeUnits,"ms")
                                     S2 = find(strcmp(Qa{:},'X(ms)'));
@@ -502,7 +502,7 @@ classdef MoDAL
                             % velCount = logical(count(Units,velChar));
                             currCount = logical(count(Units,currentChar));
                             voltCount = logical(count(Units,voltageChar));
-                            
+
                             forceCount = logical(count(Units,forceChar));
                             ForceTemp(:,:,u) = dataMat(1:tB,forceCount);
                             AccTemp(:,:,u) = dataMat(1:tB,accCount);
@@ -511,7 +511,7 @@ classdef MoDAL
                             CurrentTemp(:,:,u) = dataMat(1:tB,currCount);
                             % velCount = logical(count(Units,velChar));
                             % VelTemp(:,:,u) = detrend(dataMat(1:tB,velCount));
-                            
+
 
                             u = u+1;
                         end
@@ -631,10 +631,10 @@ classdef MoDAL
             %           the WT (default value = 2).
             % mirror - On/Off switch for mirroring where 0 = off and 1 = on.
             % mirrorIni – The type of mirroring used at the beginning of the signal provided
-            %           as a string. 'e' for even mirroring and 'o' for odd mirroring. 
+            %           as a string. 'e' for even mirroring and 'o' for odd mirroring.
             %           Odd mirroring is the default value.
             % mirrorFin – The type of mirroring used at the end of the signal provided
-            %           as a string. 'e' for even mirroring and 'o' for odd mirroring. 
+            %           as a string. 'e' for even mirroring and 'o' for odd mirroring.
             %           Odd mirroring is the default value.
             % iniFraction – The fraction of the signal used for mirroring
             %                     at the beginning of the signal. Default value is 0.2.
@@ -691,13 +691,13 @@ classdef MoDAL
                 options.iniFraction double = 0.2;
                 options.finFraction double = 0.2;
             end
-           
+
             % Mirror signal if requested
             if options.mirror == 1
-            [signal,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd] = MoDAL.MirrorSignal(time, ...
-                signal,options.mirrorIni,options.mirrorFin,options.iniFraction,options.finFraction);
+                [signal,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd] = MoDAL.MirrorSignal(time, ...
+                    signal,options.mirrorIni,options.mirrorFin,options.iniFraction,options.finFraction);
             end
-             
+
             % Transform Parameters
             dt = time(2)-time(1);
             lengthSignal = length(signal);
@@ -818,7 +818,7 @@ classdef MoDAL
             % specific set of modes instead of the first through L1 mode.
             Am = EigenVectors(index,:);
             T = EigenVectors*pinv(Am);
-            
+
             MR = T'*M*T;
             KR = T'*K*T;
             CR = T'*C*T;
@@ -960,8 +960,8 @@ classdef MoDAL
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first plot.
-            % radians - Sets the frequency units to Hz or rad/s. The default 
-            %           value is 0 which sets the units to Hz. A value of 1 
+            % radians - Sets the frequency units to Hz or rad/s. The default
+            %           value is 0 which sets the units to Hz. A value of 1
             %           sets the units to rad/s. If you are using rad/s, the
             %           method assumes that minFreq and maxFreq are provided
             %           in rad/s and not in Hz.
@@ -1044,8 +1044,8 @@ classdef MoDAL
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first plot.
-            % radians - Sets the frequency units to Hz or rad/s. The default 
-            %           value is 0 which sets the units to Hz. A value of 1 
+            % radians - Sets the frequency units to Hz or rad/s. The default
+            %           value is 0 which sets the units to Hz. A value of 1
             %           sets the units to rad/s. If you are using rad/s, the
             %           method assumes that minFreq and maxFreq are provided
             %           in rad/s and not in Hz.
@@ -1073,13 +1073,13 @@ classdef MoDAL
             figure
             tiledlayout('vertical','TileSpacing','tight')
 
-            % Plot Time Series                        
+            % Plot Time Series
             nexttile
             MoDAL.TSPlot(time,signal,timeStart=options.timeStart,...
                 timeEnd=options.timeEnd,label=options.label, ...
                 fontSize=options.fontSize,tsLim=options.tsLim)
             title(options.title)
-            
+
 
             % Compute WT
             tA = sum(time <= options.timeStart);
@@ -1146,8 +1146,8 @@ classdef MoDAL
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first two plots.
-            % radians - Sets the frequency units to Hz or rad/s. The default 
-            %           value is 0 which sets the units to Hz. A value of 1 
+            % radians - Sets the frequency units to Hz or rad/s. The default
+            %           value is 0 which sets the units to Hz. A value of 1
             %           sets the units to rad/s. If you are using rad/s, the
             %           method assumes that minFreq and maxFreq are provided
             %           in rad/s and not in Hz.
@@ -1177,7 +1177,7 @@ classdef MoDAL
             figure
             tiledlayout('vertical','TileSpacing','tight')
             % Plot Time Series
-                        
+
             nexttile
             MoDAL.TSPlot(time,signal,timeStart=options.timeStart,...
                 timeEnd=options.timeEnd,label=options.label, ...
@@ -1247,8 +1247,8 @@ classdef MoDAL
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first plot.
-            % radians - Sets the frequency units to Hz or rad/s. The default 
-            %           value is 0 which sets the units to Hz. A value of 1 
+            % radians - Sets the frequency units to Hz or rad/s. The default
+            %           value is 0 which sets the units to Hz. A value of 1
             %           sets the units to rad/s. If you are using rad/s, the
             %           method assumes that minFreq and maxFreq are provided
             %           in rad/s and not in Hz.
@@ -1344,8 +1344,8 @@ classdef MoDAL
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first two plots.
-            % radians - Sets the frequency units to Hz or rad/s. The default 
-            %           value is 0 which sets the units to Hz. A value of 1 
+            % radians - Sets the frequency units to Hz or rad/s. The default
+            %           value is 0 which sets the units to Hz. A value of 1
             %           sets the units to rad/s. If you are using rad/s, the
             %           method assumes that minFreq and maxFreq are provided
             %           in rad/s and not in Hz.
@@ -1457,8 +1457,8 @@ classdef MoDAL
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first two plots.
-            % radians - Sets the frequency units to Hz or rad/s. The default 
-            %           value is 0 which sets the units to Hz. A value of 1 
+            % radians - Sets the frequency units to Hz or rad/s. The default
+            %           value is 0 which sets the units to Hz. A value of 1
             %           sets the units to rad/s. If you are using rad/s, the
             %           method assumes that minFreq and maxFreq are provided
             %           in rad/s and not in Hz.
@@ -1601,11 +1601,11 @@ classdef MoDAL
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first two plots.
             % radians - Sets the frequency units to Hz or rad/s. The default
-            %           value is 0 which sets the units to Hz. A value of 1 
+            %           value is 0 which sets the units to Hz. A value of 1
             %           sets the units to rad/s. If you are using rad/s, the
             %           method assumes that minFreq and maxFreq are provided
             %           in rad/s and not in Hz.
-            % hideTSLegend – Hides the legend on the time series plot. The 
+            % hideTSLegend – Hides the legend on the time series plot. The
             %                default value is 0, which shows the legend. A
             %                value of 1 hides the legend.
             % hideFTLegend – Hides the legend on the Fourier spectra plot. The
@@ -1655,7 +1655,7 @@ classdef MoDAL
 
             figure
             tiledlayout(3,2,TileSpacing='tight');
-            
+
             nexttile([1,2])
             MoDAL.TSPlot(time1,signal1,color=options.firstColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
@@ -1768,7 +1768,7 @@ classdef MoDAL
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first two plots.
             % radians - Sets the frequency units to Hz or rad/s. The default
-            %           value is 0 which sets the units to Hz. A value of 1 
+            %           value is 0 which sets the units to Hz. A value of 1
             %           sets the units to rad/s. If you are using rad/s, the
             %           method assumes that minFreq and maxFreq are provided
             %           in rad/s and not in Hz.
@@ -1913,7 +1913,7 @@ classdef MoDAL
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first two plots.
             % radians - Sets the frequency units to Hz or rad/s. The default
-            %           value is 0 which sets the units to Hz. A value of 1 
+            %           value is 0 which sets the units to Hz. A value of 1
             %           sets the units to rad/s. If you are using rad/s, the
             %           method assumes that minFreq and maxFreq are provided
             %           in rad/s and not in Hz.
@@ -2011,7 +2011,7 @@ classdef MoDAL
                 legend(options.legends,options.legendsOpt{:})
             end
             drawnow;
-            
+
             if options.hideX; MoDAL.HideX;end
         end
 
@@ -2067,7 +2067,7 @@ classdef MoDAL
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first two plots.
             % radians - Sets the frequency units to Hz or rad/s. The default
-            %           value is 0 which sets the units to Hz. A value of 1 
+            %           value is 0 which sets the units to Hz. A value of 1
             %           sets the units to rad/s. If you are using rad/s, the
             %           method assumes that minFreq and maxFreq are provided
             %           in rad/s and not in Hz.
@@ -2196,7 +2196,7 @@ classdef MoDAL
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first two plots.
             % radians - Sets the frequency units to Hz or rad/s. The default
-            %           value is 0 which sets the units to Hz. A value of 1 
+            %           value is 0 which sets the units to Hz. A value of 1
             %           sets the units to rad/s. If you are using rad/s, the
             %           method assumes that minFreq and maxFreq are provided
             %           in rad/s and not in Hz.
@@ -2613,7 +2613,7 @@ classdef MoDAL
             %
             % Required Inputs
             % ---------------------------------------------
-            % Strain = Vector or matrix of measured strain. 
+            % Strain = Vector or matrix of measured strain.
             % ident = String scalar or cell containing the labels for the bolts.
             %
             % Outputs
@@ -2634,7 +2634,7 @@ classdef MoDAL
             if ~isKey(library, bolts)
                 error('Unknown bolt identifier: %s', boltID);
             end
-            
+
             if size(strain,2) > size(strain,1)
                 strain = strain';
             end
@@ -2977,7 +2977,7 @@ classdef MoDAL
             % Vakakis, "Wavelet-Bounded Empirical Mode Decomposition for Measured Time
             % Series Analysis," Mechanical Systems and Signal Processing, 99:14-29,
             % 2018. https://doi.org/10.1016/j.ymssp.2017.06.005
-            % 
+            %
             % K.J. Moore, M. Kurt, M. Eriten, D.M. McFarland, L.A. Bergman, A.F.
             % Vakakis, "Wavelet-Bounded Empirical Mode Decomposition for Vibro-Impact
             % Analysis," Nonlinear Dynamics, 93(3):1559-1577, 2018.
@@ -2997,8 +2997,15 @@ classdef MoDAL
                 options.mirrorChop1 cell = {};
                 options.mirrorChop2 cell = {};
                 options.Mirror struct = [];
+                options.parallel double = 0;
             end
             if ~isfield(options.Mirror,'On'); options.Mirror(1).On = 0; end
+            if options.parallel == 1
+                p = gcp;
+                arg = p.NumWorkers;
+            else
+                arg = 0;
+            end
 
             % Wavelet Parameters
             numFreq = options.numFreq;
@@ -3012,10 +3019,14 @@ classdef MoDAL
 
             NumIMFs = 0;
             NumMaskSig = 0;
-            for b = 1:M
-                if b > 1
-                    clear('X_emd','masksig')
-                end
+            parfor (b = 1:M, arg)
+                % if b > 1
+                %     % clear('X_emd','masksig')
+                %     X_emd = [];
+                %     masksig = [];
+                % end
+
+                iterMaxFreq = maxFreq;
 
                 if options.Mirror.On == 1
                     fmirr = options.Mirror.Freq{b};
@@ -3038,8 +3049,8 @@ classdef MoDAL
                 m = 1;
                 tic
                 while(1)
-                    if fg(o) < maxFreq/2.5
-                        maxFreq = maxFreq/2;
+                    if fg(o) < iterMaxFreq/2.5
+                        iterMaxFreq = iterMaxFreq/2;
                     end
                     if options.Mirror.On == 1
                         if fg(o) == fmirr(m)
@@ -3126,7 +3137,7 @@ classdef MoDAL
 
                         fprintf('Optimizing IMF %g of Time Series %g.\n ',o,b)
 
-                        [freq,modx] = MoDAL.WaveletTransform(time,signal(:,b),minFreq,maxFreq, ...
+                        [freq,modx] = MoDAL.WaveletTransform(time,signal(:,b),minFreq,iterMaxFreq, ...
                             'numFreq',numFreq,'motherWaveletFreq',motherWaveletFreq,'Mirror',0);
                         modx(isnan(modx))=0;
                         if options.Mirror.On == 1
@@ -3179,7 +3190,7 @@ classdef MoDAL
 
 
                         [xopt,~,~,~] = patternsearch(@(x) MoDAL.WBEMDObjFun(x,ti,X_emd,modx_normer,minFreq, ...
-                            maxFreq,numFreq,motherWaveletFreq,mod_criteria1,mod_criteria2,checksval, ...
+                            iterMaxFreq,numFreq,motherWaveletFreq,mod_criteria1,mod_criteria2,checksval, ...
                             fg,gamma,delta,Omega),x0,[],[],[],[],lb,ub,[],Opts);
 
                         disp ' '
@@ -3207,7 +3218,7 @@ classdef MoDAL
                             end
                             IMF_Proc = (imf1+imf2)/2;
                         catch
-
+                            EMD_OPTs = [];
                             EMD_OPTs.MAXMODES = 1;
                             EMD_OPTs.MASK = masksig;
                             EMD_OPTs.MAXITERATIONS = 100;
@@ -3983,8 +3994,8 @@ classdef MoDAL
         function P = WBEMDObjFun(z,time,X_emd,modx_normer,minFreq,maxFreq,numFreq,motherWaveletFreq,mod_criteria1,mod_criteria2,checksval,fg,gamma,delta,Omega)
             masksig = max(abs(X_emd))*(z(1)*sin(2*pi*fg(1)*z(2)*time));
             try
-            [imf1,~] = emdc_fix(time,X_emd+masksig,100,1);
-            [imf2,~] = emdc_fix(time,X_emd-masksig,100,1);
+                [imf1,~] = emdc_fix(time,X_emd+masksig,100,1);
+                [imf2,~] = emdc_fix(time,X_emd-masksig,100,1);
             catch
                 [size(X_emd) size(time)]
             end
@@ -4034,7 +4045,7 @@ classdef MoDAL
             end
         end
 
-        
+
 
         function X = chop(Xin,n,unit)
             %CHOP   CHOP(X,n) rounds elements of X to n significant figures.

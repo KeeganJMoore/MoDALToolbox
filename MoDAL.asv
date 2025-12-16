@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.3.18";
+        Version = "1.4.2";
     end
 
     methods(Static)
@@ -43,7 +43,7 @@ classdef MoDAL
             if ~isfile(destination3); websave(destination3,url2); end
             if ~isfile(destination4); websave(destination4,url3); end
             if ~isfile(destination5); websave(destination5,url4); end
-
+        
 
             destination = fullfile([userpath '/'],'startup.m');
 
@@ -64,6 +64,10 @@ classdef MoDAL
             fclose(FID);
 
             fprintf('\nMoDAL version %s successfully installed.\n\n',MoDAL.Version)
+
+            % Set MATLAB to save using v7.3. This enables saving files above 2 GB.
+            rootgroup = settings();
+            rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = 'v7.3';
         end
 
         function Update
@@ -138,7 +142,7 @@ classdef MoDAL
             % timeStart - lower x-limit for zoomed-in view
             % timeEnd - upper x-limit for zoomed-in view
             % nonDim - 0 sets units to dimensional
-            %        - 1 sets units to nondimensional (uses \cdot)
+            %        - 1 sets units to nondimensional (uses ·)
             % forceUnits - character vector that specifies the force units.
             %              nonDim overrides this option.
             % timeUnits - character vector that specifies the time units.
@@ -158,8 +162,8 @@ classdef MoDAL
             tStartSpecified = 1;
             tEndSpecified = 1;
             if options.nonDim == 1
-                options.forceUnits = '\cdot';
-                options.timeUnits = '\cdot';
+                options.forceUnits = '·';
+                options.timeUnits = '·';
             end
             if ~isfield(options,"timeStart")
                 idx = findchangepts(force,"MaxNumChanges",2);
@@ -199,22 +203,45 @@ classdef MoDAL
             set(gca,'FontSize',options.fontSize)
         end
 
-        function [omega,Phi] = ComputeNormalModes(massMatrix,stiffnessM)
+        function [natFreq,Phi] = ComputeNormalModes(stiffnessMatrix,massMatrix)
             % This code computes the natural frequencies in Hz and the mass-orthnormalized mode
-            % shapes for given mass and stiffness matrices.
+            % shapes for given mass and stiffness matrices. The natural frequencies and mode shpares
+            % are ordered from lowest to highest natural frequency.
             %
             % Required Inputs
             % ---------------------------------------------
-            % 
-            [omega,Phi] = eig(K,massMatrix,'vector');
-            omega = sqrt(omega)/(2*pi);
+            % stiffnessMatrix - The stiffness matrix for the system.
+            % massMatrix - The mass matrix for the system.
+            %
+            % Outputs
+            % ---------------------------------------------
+            % omega - Vector of natural frequencies in Hz.
+            % Phi - Modal matrix where each column represents a mass-orthonormalized mode shape
+            %       corresponding to the rows of the natural frequency vector.
+            [Phi,natFreq] = eig(stiffnessMatrix,massMatrix,'vector');
+            natFreq = sqrt(natFreq)/(2*pi);
 
             for i = 1:length(massMatrix)
                 Phi(:,i) = Phi(:,i)/sqrt(Phi(:,i)'*massMatrix*Phi(:,i));
             end
+
+            H = [natFreq Phi'];
+            H = sortrows(H,1);
+            natFreq = H(:,1);
+            Phi = H(:,2:end)';
         end
 
         function Phi = MassOrthonormalize(massMatrix,modeShapes)
+            % This code mass-orthnormalizes a set of mode shapes for a given mass matrix.
+            % 
+            % Required Inputs
+            % ---------------------------------------------
+            % massMatrix - The mass matrix for the system.
+            % modeShapes - The modal matrix where each column represents a single mode.
+            %
+            % Outputs
+            % ---------------------------------------------
+            % Phi - Modal matrix where each column represents a mass-orthonormalized mode shape.
             Phi = 0*modeShapes;
             for i = 1:length(massMatrix)
                 Phi(:,i) = modeShapes(:,i)/sqrt(modeShapes(:,i)'*M*modeShapes(:,i));
@@ -421,8 +448,11 @@ classdef MoDAL
             forceChar = "Newton";
             accChar = "m/s^2 ";
             strainChar = "ε     ";
+            currentChar = "A     ";
+            voltageChar = "V     ";
             % velChar = "m/s   ";
-
+            
+            
             A = dir;
             u = 1;
             for ij = 1:length(A)
@@ -437,27 +467,51 @@ classdef MoDAL
                             if u == 1
                                 File1 = fopen(FName1);
                                 Qa = textscan(File1,'%s',300);
+                                S0 = find(strcmp(Qa{:},'Unit:'),1,'first');
                                 S1 = find(strcmp(Qa{:},'Unit:'),1,'last');
-                                S2 = find(strcmp(Qa{:},'X(s)'));
+                                TimeUnits = string(char(Qa{:}(S0+1)));
+                               
+                                if strcmp(TimeUnits,"s")
+                                    S2 = find(strcmp(Qa{:},'X(s)')); 
+                                    TimeScale = 1;
+                                elseif strcmp(TimeUnits,"ms")
+                                    S2 = find(strcmp(Qa{:},'X(ms)'));
+                                    TimeScale = 1/1000;
+                                end
+
+                                if options.textFileName == 'SIG'
+                                    S3 = find(strcmp(Qa{:},'Size:'),1);
+                                    BlockSize = double(string(char(Qa{:}(S3+1))));
+                                end
+
                                 Units = string(char(Qa{:}{S1+1:S2-1}));
                                 fclose(File1);
 
                             end
                             dataMat = readmatrix(FName1,"NumHeaderLines",options.numHeaderLines);
-                            Time = dataMat(:,1);
-                            tB = sum(Time <= options.endTime);
+                            Time = dataMat(:,1)*TimeScale;
+                            if options.textFileName == 'SIG'
+                                tB = BlockSize;
+                            else
+                                tB = sum(Time <= options.endTime);
+                            end
                             dataMat = dataMat(:,2:end);
 
                             strainCount = logical(count(Units,strainChar));
                             accCount = logical(count(Units,accChar));
+                            % velCount = logical(count(Units,velChar));
+                            currCount = logical(count(Units,currentChar));
+                            voltCount = logical(count(Units,voltageChar));
                             
                             forceCount = logical(count(Units,forceChar));
                             ForceTemp(:,:,u) = dataMat(1:tB,forceCount);
                             AccTemp(:,:,u) = dataMat(1:tB,accCount);
                             StrainTemp(:,:,u) = dataMat(1:tB,strainCount);
-                            
-                            % VelTemp(:,:,u) = detrend(dataMat(1:tB,velCount));
+                            VoltTemp(:,:,u) = dataMat(1:tB,voltCount);
+                            CurrentTemp(:,:,u) = dataMat(1:tB,currCount);
                             % velCount = logical(count(Units,velChar));
+                            % VelTemp(:,:,u) = detrend(dataMat(1:tB,velCount));
+                            
 
                             u = u+1;
                         end
@@ -465,6 +519,7 @@ classdef MoDAL
                 end
             end
             Time = Time(1:tB);
+
 
             % Sort the runs by the applied force if desired
             if sum(forceCount) == 1
@@ -474,6 +529,8 @@ classdef MoDAL
                     Force = 0*ForceTemp;
                     Acc = 0*AccTemp;
                     Strain = 0*StrainTemp;
+                    Voltage = 0*VoltTemp;
+                    Current = 0*CurrentTemp;
                     Sortu = [(1:u-1)' MaxForces];
                     Sortu = sortrows(Sortu,2);
                     SortOrder = zeros(length(Sortu),2);
@@ -482,21 +539,29 @@ classdef MoDAL
                         Force(:,:,i) = ForceTemp(:,:,Sortu(i,1));
                         Acc(:,:,i) = AccTemp(:,:,Sortu(i,1));
                         Strain(:,:,i) = StrainTemp(:,:,Sortu(i,1));
+                        Voltage(:,:,i) = VoltTemp(:,:,Sortu(i,1));
+                        Current(:,:,i) = CurrentTemp(:,:,Sortu(i,1));
                     end
                     Data.SortOrder = SortOrder;
                 else
                     Force = ForceTemp;
                     Acc = AccTemp;
                     Strain = StrainTemp;
+                    Current = CurrentTemp;
+                    Voltage = VoltTemp;
                 end
             else
                 Force = ForceTemp;
                 Acc = AccTemp;
                 Strain = StrainTemp;
+                Current = CurrentTemp;
+                Voltage = VoltTemp;
             end
             Force = squeeze(Force);
             Acc = squeeze(Acc);
             Strain = squeeze(Strain);
+            Current = squeeze(Current);
+            Voltage = squeeze(Voltage);
 
             % Detrend the measurements to remove DC offsets
             if options.Detrend == 1
@@ -523,6 +588,8 @@ classdef MoDAL
             Data.Order = options.order;
             Data.CutOffFreq = options.cutOffFreq;
             Data.TimeEnd = Data.Time(end);
+            Data.Voltage = Voltage;
+            Data.Current = Current;
 
             if options.forceFilter
                 Fc = 16384/Fnyq;
@@ -538,7 +605,7 @@ classdef MoDAL
         function [f,Fx] = ComputeFFT(time,signal)
             dt = time(2)-time(1);
             L = length(time);
-            f = 1/dt*(0:L/2)/L;
+            f = 1/dt*(0:(L/2-1))/L;
             Fx = fft(signal,L);
         end
 
@@ -751,6 +818,7 @@ classdef MoDAL
             % specific set of modes instead of the first through L1 mode.
             Am = EigenVectors(index,:);
             T = EigenVectors*pinv(Am);
+            
             MR = T'*M*T;
             KR = T'*K*T;
             CR = T'*C*T;
@@ -779,7 +847,7 @@ classdef MoDAL
 
             dt = time(2)-time(1);
             L = length(time);
-            f = 1/dt*(0:L/2)/L;
+            f = 1/dt*(0:(L/2-1))/L;
             FFx = fft(signal);
             Phase = unwrap(angle(FFx(1:length(f))));
             FFx = abs(FFx(1:length(f)));
@@ -830,7 +898,7 @@ classdef MoDAL
             end
             dt = time(2)-time(1);
             L = length(time);
-            f = 1/dt*(0:L/2)/L;
+            f = 1/dt*(0:(L/2-1))/L;
             Fx = 2/L*fft(signal,L);
             FF = 2/L*fft(Force,L);
             Phase = Fx(1:length(f))./FF(1:length(f));
@@ -892,6 +960,11 @@ classdef MoDAL
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first plot.
+            % radians - Sets the frequency units to Hz or rad/s. The default 
+            %           value is 0 which sets the units to Hz. A value of 1 
+            %           sets the units to rad/s. If you are using rad/s, the
+            %           method assumes that minFreq and maxFreq are provided
+            %           in rad/s and not in Hz.
 
             arguments
                 time (:,1) double
@@ -906,22 +979,23 @@ classdef MoDAL
                 options.force (:,1) double = [];
                 options.title string = '';
                 options.hideX double = 0;
+                options.radians double {mustBeInRange(options.radians,0,1)} = 0;
             end
 
             figure
-            tiledlayout('flow','TileSpacing','tight')
+            tiledlayout('vertical','TileSpacing','tight')
 
             % Plot Time Series
-            nexttile([1,2])
+            nexttile
             MoDAL.TSPlot(time,signal,timeStart=options.timeStart,...
                 timeEnd=options.timeEnd,label=options.label, ...
                 fontSize=options.fontSize,tsLim=options.tsLim)
             title(options.title)
 
             % Plot FFT
-            nexttile([1,2])
+            nexttile
             MoDAL.FTPlot(time,signal,minFreq,maxFreq,force=options.force, ...
-                label=options.label,fontSize=options.fontSize)
+                label=options.label,fontSize=options.fontSize,radians=options.radians)
 
             if options.hideX; MoDAL.HideX;end
         end
@@ -970,7 +1044,11 @@ classdef MoDAL
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first plot.
-
+            % radians - Sets the frequency units to Hz or rad/s. The default 
+            %           value is 0 which sets the units to Hz. A value of 1 
+            %           sets the units to rad/s. If you are using rad/s, the
+            %           method assumes that minFreq and maxFreq are provided
+            %           in rad/s and not in Hz.
             arguments
                 time (:,1) double
                 signal (:,1) double
@@ -989,13 +1067,14 @@ classdef MoDAL
                 options.wtPower double = 1;
                 options.title string = '';
                 options.hideX double = 0;
+                options.radians double {mustBeInRange(options.radians,0,1)} = 0;
             end
 
             figure
-            tiledlayout('flow','TileSpacing','tight')
+            tiledlayout('vertical','TileSpacing','tight')
 
             % Plot Time Series                        
-            nexttile([1,2])
+            nexttile
             MoDAL.TSPlot(time,signal,timeStart=options.timeStart,...
                 timeEnd=options.timeEnd,label=options.label, ...
                 fontSize=options.fontSize,tsLim=options.tsLim)
@@ -1003,13 +1082,21 @@ classdef MoDAL
             
 
             % Compute WT
-            [freq,mods] = MoDAL.WaveletSignal(time,signal,minFreq,maxFreq, ...
-                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            tA = sum(time <= options.timeStart);
+            tB = sum(time <= options.timeEnd);
+            if options.radians
+                [freq,mods] = MoDAL.WaveletSignal(time(tA:tB)/(2*pi),signal(tA:tB),minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            else
+                [freq,mods] = MoDAL.WaveletSignal(time(tA:tB),signal(tA:tB),minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            end
             mods = mods/max(mods,[],'All');
 
             % Plot WT
-            nexttile([1,2])
-            MoDAL.WTSpectraPlot(time,freq,mods,options)
+            nexttile
+            MoDAL.WTSpectraPlot(time(tA:tB),freq,mods,options)
+
 
             if options.hideX;MoDAL.HideX;end
         end
@@ -1059,6 +1146,12 @@ classdef MoDAL
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first two plots.
+            % radians - Sets the frequency units to Hz or rad/s. The default 
+            %           value is 0 which sets the units to Hz. A value of 1 
+            %           sets the units to rad/s. If you are using rad/s, the
+            %           method assumes that minFreq and maxFreq are provided
+            %           in rad/s and not in Hz.
+
             arguments
                 time (:,1) double
                 signal (:,1) double
@@ -1078,31 +1171,39 @@ classdef MoDAL
                 options.wtPower double = 1;
                 options.title string = '';
                 options.hideX double = 0;
+                options.radians double {mustBeInRange(options.radians,0,1)} = 0;
             end
 
             figure
-            tiledlayout('flow','TileSpacing','tight')
+            tiledlayout('vertical','TileSpacing','tight')
             % Plot Time Series
                         
-            nexttile([1,2])
+            nexttile
             MoDAL.TSPlot(time,signal,timeStart=options.timeStart,...
                 timeEnd=options.timeEnd,label=options.label, ...
                 fontSize=options.fontSize,tsLim=options.tsLim)
             title(options.title)
 
             % Compute WT
-            [freq,mods] = MoDAL.WaveletSignal(time,signal,minFreq,maxFreq, ...
-                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            tA = sum(time <= options.timeStart);
+            tB = sum(time <= options.timeEnd);
+            if options.radians
+                [freq,mods] = MoDAL.WaveletSignal(time(tA:tB)/(2*pi),signal(tA:tB),minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            else
+                [freq,mods] = MoDAL.WaveletSignal(time(tA:tB),signal(tA:tB),minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            end
             mods = mods/max(mods,[],'All');
 
             % Plot WT
-            nexttile([1,2])
-            MoDAL.WTSpectraPlot(time,freq,mods,options)
+            nexttile
+            MoDAL.WTSpectraPlot(time(tA:tB),freq,mods,options)
 
             % Plot FFT/FRF
-            nexttile([1,2])
+            nexttile
             MoDAL.FTPlot(time,signal,minFreq,maxFreq,force=options.force, ...
-                label=options.label,fontSize=options.fontSize)
+                label=options.label,fontSize=options.fontSize,radians=options.radians)
 
             if options.hideX; MoDAL.HideX;end
         end
@@ -1146,6 +1247,12 @@ classdef MoDAL
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first plot.
+            % radians - Sets the frequency units to Hz or rad/s. The default 
+            %           value is 0 which sets the units to Hz. A value of 1 
+            %           sets the units to rad/s. If you are using rad/s, the
+            %           method assumes that minFreq and maxFreq are provided
+            %           in rad/s and not in Hz.
+
             arguments
                 time (:,1) double
                 signal (:,1) double
@@ -1162,11 +1269,12 @@ classdef MoDAL
                 options.mirrorf string = 'e';
                 options.title string = '';
                 options.hideX double = 0;
+                options.radians double {mustBeInRange(options.radians,0,1)} = 0;
             end
 
             figure
-            tiledlayout('flow','TileSpacing','tight')
-            nexttile([1,2])
+            tiledlayout('vertical','TileSpacing','tight')
+            nexttile
 
             % Plot Time Series
             MoDAL.TSPlot(time,signal,timeStart=options.timeStart,...
@@ -1174,12 +1282,19 @@ classdef MoDAL
             title(options.title)
 
             % Compute WT
-            [freq,mods] = MoDAL.WaveletSignal(time,signal,minFreq,maxFreq, ...
-                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            tA = sum(time <= options.timeStart);
+            tB = sum(time <= options.timeEnd);
+            if options.radians
+                [freq,mods] = MoDAL.WaveletSignal(time(tA:tB)/(2*pi),signal(tA:tB),minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            else
+                [freq,mods] = MoDAL.WaveletSignal(time(tA:tB),signal(tA:tB),minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            end
             mods = mods/max(mods,[],'All');
 
             % Plot MWT
-            nexttile([1,2])
+            nexttile
             MoDAL.MWTPlot(freq,max(mods),minFreq,maxFreq, ...
                 fontSize=options.fontSize,label=options.label)
 
@@ -1229,6 +1344,12 @@ classdef MoDAL
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first two plots.
+            % radians - Sets the frequency units to Hz or rad/s. The default 
+            %           value is 0 which sets the units to Hz. A value of 1 
+            %           sets the units to rad/s. If you are using rad/s, the
+            %           method assumes that minFreq and maxFreq are provided
+            %           in rad/s and not in Hz.
+
             arguments
                 time (:,1) double
                 signal (:,1) double
@@ -1247,11 +1368,12 @@ classdef MoDAL
                 options.wtPower double = 1;
                 options.title string = '';
                 options.hideX double = 0;
+                options.radians double {mustBeInRange(options.radians,0,1)} = 0;
             end
 
             figure
-            tiledlayout('flow','TileSpacing','tight')
-            nexttile([1,2])
+            tiledlayout('vertical','TileSpacing','tight')
+            nexttile
 
             % Plot Time Series
             MoDAL.TSPlot(time,signal,timeStart=options.timeStart,...
@@ -1259,16 +1381,22 @@ classdef MoDAL
             title(options.title)
 
             % Compute the WT
-            [freq,mods] = MoDAL.WaveletSignal(time,signal,minFreq,maxFreq, ...
-                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
-            mods = mods/max(mods,[],'All');
+            tA = sum(time <= options.timeStart);
+            tB = sum(time <= options.timeEnd);
+            if options.radians
+                [freq,mods] = MoDAL.WaveletSignal(time(tA:tB)/(2*pi),signal(tA:tB),minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            else
+                [freq,mods] = MoDAL.WaveletSignal(time(tA:tB),signal(tA:tB),minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            end
 
             % Plot the WT
-            nexttile([1,2])
-            MoDAL.WTSpectraPlot(time,freq,mods,options)
+            nexttile
+            MoDAL.WTSpectraPlot(time(tA:tB),freq,mods,options)
 
             % Plot the MWT
-            nexttile([1,2])
+            nexttile
             MoDAL.MWTPlot(freq,max(mods),minFreq,maxFreq, ...
                 fontSize=options.fontSize,label=options.label)
 
@@ -1329,6 +1457,12 @@ classdef MoDAL
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first two plots.
+            % radians - Sets the frequency units to Hz or rad/s. The default 
+            %           value is 0 which sets the units to Hz. A value of 1 
+            %           sets the units to rad/s. If you are using rad/s, the
+            %           method assumes that minFreq and maxFreq are provided
+            %           in rad/s and not in Hz.
+
             arguments
                 time1 (:,1) double
                 signal1 (:,1) double
@@ -1356,11 +1490,12 @@ classdef MoDAL
                 options.wtPower double = 1;
                 options.title string = '';
                 options.hideX double = 0;
+                options.radians double {mustBeInRange(options.radians,0,1)} = 0;
             end
 
             figure
-            tiledlayout('flow','TileSpacing','tight')
-            nexttile([1,2])
+            tiledlayout('vertical','TileSpacing','tight')
+            nexttile
 
             % Plot Time Series
             MoDAL.TSPlot(time1,signal1,color=options.firstColor,fontSize=options.fontSize, ...
@@ -1374,10 +1509,21 @@ classdef MoDAL
             title(options.title)
 
             % Compute Wavelet Transforms
-            [freq1,mods1] = MoDAL.WaveletSignal(time1,signal1,minFreq,maxFreq, ...
-                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
-            [freq2,mods2] = MoDAL.WaveletSignal(time2,signal2,minFreq,maxFreq, ...
-                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            tA1 = sum(time1 <= options.timeStart);
+            tB1 = sum(time1 <= options.timeEnd);
+            tA2 = sum(time2 <= options.timeStart);
+            tB2 = sum(time2 <= options.timeEnd);
+            if options.radians
+                [freq1,mods1] = MoDAL.WaveletSignal(time1(tA1:tB1)/(2*pi),signal1(tA1:tB1),minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                [freq2,mods2] = MoDAL.WaveletSignal(time2(tA2:tB2)/(2*pi),signal2(tA2:tB2),minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            else
+                [freq1,mods1] = MoDAL.WaveletSignal(time1(tA1:tB1),signal1(tA1:tB1),minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                [freq2,mods2] = MoDAL.WaveletSignal(time2(tA2:tB2),signal2(tA2:tB2),minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            end
 
             % Normalize Wavelets
             maxnorm = max([max(max(mods1)) max(max(mods2))]);
@@ -1385,13 +1531,13 @@ classdef MoDAL
             mods2 = mods2/maxnorm;
 
             % Plot Wavelets
-            nexttile([1,2])
-            MoDAL.WTSpectraPlot(time1,freq1,mods1,options)
+            nexttile
+            MoDAL.WTSpectraPlot(time1(tA1:tB1),freq1,mods1,options)
             clim([0 1])
             title(options.legends{1})
 
-            nexttile([1,2])
-            MoDAL.WTSpectraPlot(time2,freq2,mods2,options)
+            nexttile
+            MoDAL.WTSpectraPlot(time2(tA2:tB2),freq2,mods2,options)
             clim([0 1])
             title(options.legends{2})
             if options.hideX; MoDAL.HideX;end
@@ -1454,6 +1600,17 @@ classdef MoDAL
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first two plots.
+            % radians - Sets the frequency units to Hz or rad/s. The default
+            %           value is 0 which sets the units to Hz. A value of 1 
+            %           sets the units to rad/s. If you are using rad/s, the
+            %           method assumes that minFreq and maxFreq are provided
+            %           in rad/s and not in Hz.
+            % hideTSLegend – Hides the legend on the time series plot. The 
+            %                default value is 0, which shows the legend. A
+            %                value of 1 hides the legend.
+            % hideFTLegend – Hides the legend on the Fourier spectra plot. The
+            %                default value is 0, which shows the legend. A
+            %                value of 1 hides the legend.
             arguments
                 time1 (:,1) double
                 signal1 (:,1) double
@@ -1481,6 +1638,9 @@ classdef MoDAL
                 options.wtPower double = 1;
                 options.title string = '';
                 options.hideX double = 0;
+                options.radians double {mustBeInRange(options.radians,0,1)} = 0;
+                options.hideTSLegend double = 0;
+                options.hideFTLegend double = 0;
             end
             if size(options.force,1) < size(options.force,2)
                 options.force = options.force';
@@ -1494,7 +1654,8 @@ classdef MoDAL
             end
 
             figure
-            tiledlayout('flow',TileSpacing='tight');
+            tiledlayout(3,2,TileSpacing='tight');
+            
             nexttile([1,2])
             MoDAL.TSPlot(time1,signal1,color=options.firstColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
@@ -1503,14 +1664,27 @@ classdef MoDAL
             MoDAL.TSPlot(time2,signal2,color=options.secondColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
                 tsLim=options.tsLim,linestyle=options.secondLineStyle)
-            legend(options.legends,options.legendsOpt{:})
+            if ~options.hideTSLegend
+                legend(options.legends,options.legendsOpt{:})
+            end
             title(options.title)
 
             % Compute Wavelet Transforms
-            [freq1,mods1] = MoDAL.WaveletSignal(time1,signal1,minFreq,maxFreq, ...
-                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
-            [freq2,mods2] = MoDAL.WaveletSignal(time2,signal2,minFreq,maxFreq, ...
-                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            tA1 = sum(time1 <= options.timeStart);
+            tB1 = sum(time1 <= options.timeEnd);
+            tA2 = sum(time2 <= options.timeStart);
+            tB2 = sum(time2 <= time2(end));
+            if options.radians
+                [freq1,mods1] = MoDAL.WaveletSignal(time1(tA1:tB1)/(2*pi),signal1(tA1:tB1),minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                [freq2,mods2] = MoDAL.WaveletSignal(time2(tA2:tB2)/(2*pi),signal2(tA2:tB2),minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            else
+                [freq1,mods1] = MoDAL.WaveletSignal(time1(tA1:tB1),signal1(tA1:tB1),minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                [freq2,mods2] = MoDAL.WaveletSignal(time2(tA2:tB2),signal2(tA2:tB2),minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            end
 
             % Normalize Wavelets
             maxnorm = max([max(max(mods1)) max(max(mods2))]);
@@ -1519,23 +1693,26 @@ classdef MoDAL
 
             % Plot Wavelets
             nexttile([1,1])
-            MoDAL.WTSpectraPlot(time1,freq1,mods1,options)
+            MoDAL.WTSpectraPlot(time1(tA1:tB1),freq1,mods1,options)
             title(options.legends{1})
             clim([0 1])
 
             nexttile([1,1])
-            MoDAL.WTSpectraPlot(time2,freq2,mods2,options)
+            MoDAL.WTSpectraPlot(time2(tA2:tB2),freq2,mods2,options)
             title(options.legends{2})
             clim([0 1])
 
             nexttile([1,2])
             MoDAL.FTPlot(time1,signal1,minFreq,maxFreq,force=F1,color=options.firstColor, ...
                 label=options.label,fontSize=options.fontSize, ...
-                linestyle=options.firstLineStyle)
+                linestyle=options.firstLineStyle,radians=options.radians)
             hold on
             MoDAL.FTPlot(time2,signal2,minFreq,maxFreq,force=F2,color=options.secondColor, ...
-                label=options.label,fontSize=options.fontSize,linestyle=options.secondLineStyle)
-            legend(options.legends,options.legendsOpt{:})
+                label=options.label,fontSize=options.fontSize, ...
+                linestyle=options.secondLineStyle,radians=options.radians)
+            if ~options.hideFTLegend
+                legend(options.legends,options.legendsOpt{:})
+            end
 
             if options.hideX; MoDAL.HideX;end
         end
@@ -1590,6 +1767,17 @@ classdef MoDAL
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first two plots.
+            % radians - Sets the frequency units to Hz or rad/s. The default
+            %           value is 0 which sets the units to Hz. A value of 1 
+            %           sets the units to rad/s. If you are using rad/s, the
+            %           method assumes that minFreq and maxFreq are provided
+            %           in rad/s and not in Hz.
+            % hideTSLegend – Hides the legend on the time series plot. The
+            %                default value is 0, which shows the legend. A
+            %                value of 1 hides the legend.
+            % hideMWTLegend – Hides the legend on the MWT plot. The
+            %                default value is 0, which shows the legend. A
+            %                value of 1 hides the legend.
             arguments
                 time1 (:,1) double
                 signal1 (:,1) double
@@ -1614,11 +1802,14 @@ classdef MoDAL
                 options.legendsOpt cell = {'Location','northeast','orientation','horizontal'};
                 options.title string = '';
                 options.hideX double = 0;
+                options.radians double {mustBeInRange(options.radians,0,1)} = 0;
+                options.hideTSLegend double = 0;
+                options.hideMWTLegend double = 0;
             end
 
             figure
-            tiledlayout('flow','TileSpacing','tight')
-            nexttile([1,2])
+            tiledlayout('vertical','TileSpacing','tight')
+            nexttile
 
             % Plot the Time Series
             MoDAL.TSPlot(time1,signal1,color=options.firstColor,fontSize=options.fontSize, ...
@@ -1628,14 +1819,24 @@ classdef MoDAL
             MoDAL.TSPlot(time2,signal2,color=options.secondColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
                 tsLim=options.tsLim,linestyle=options.secondLineStyle)
-            legend(options.legends,options.legendsOpt{:})
+            if ~options.hideTSLegend
+                legend(options.legends,options.legendsOpt{:})
+            end
+
             title(options.title)
 
             % Compute Wavelet Transforms
-            [freq1,mods1] = MoDAL.WaveletSignal(time1,signal1,minFreq,maxFreq, ...
-                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
-            [freq2,mods2] = MoDAL.WaveletSignal(time2,signal2,minFreq,maxFreq, ...
-                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            if options.radians
+                [freq1,mods1] = MoDAL.WaveletSignal(time1/(2*pi),signal1,minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                [freq2,mods2] = MoDAL.WaveletSignal(time2/(2*pi),signal2,minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            else
+                [freq1,mods1] = MoDAL.WaveletSignal(time1,signal1,minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                [freq2,mods2] = MoDAL.WaveletSignal(time2,signal2,minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            end
 
             % Normalize Wavelets
             maxnorm = max([max(max(mods1)) max(max(mods2))]);
@@ -1643,13 +1844,15 @@ classdef MoDAL
             mods2 = mods2/maxnorm;
 
             % Plot MWT
-            nexttile([1,2])
+            nexttile
             MoDAL.MWTPlot(freq1,max(mods1),minFreq,maxFreq, ...
                 fontSize=options.fontSize,label=options.label)
             hold on
             MoDAL.MWTPlot(freq2,max(mods2),minFreq,maxFreq,color='c', ...
                 fontSize=options.fontSize,label=options.label)
-            legend(options.legends,options.legendsOpt{:})
+            if ~options.hideMWTLegend
+                legend(options.legends,options.legendsOpt{:})
+            end
 
             if options.hideX; MoDAL.HideX;end
             drawnow;
@@ -1709,6 +1912,17 @@ classdef MoDAL
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first two plots.
+            % radians - Sets the frequency units to Hz or rad/s. The default
+            %           value is 0 which sets the units to Hz. A value of 1 
+            %           sets the units to rad/s. If you are using rad/s, the
+            %           method assumes that minFreq and maxFreq are provided
+            %           in rad/s and not in Hz.
+            % hideTSLegend – Hides the legend on the time series plot. The
+            %                default value is 0, which shows the legend. A
+            %                value of 1 hides the legend.
+            % hideMWTLegend – Hides the legend on the MWT plot. The
+            %                default value is 0, which shows the legend. A
+            %                value of 1 hides the legend.
             arguments
                 time1 (:,1) double
                 signal1 (:,1) double
@@ -1735,10 +1949,13 @@ classdef MoDAL
                 options.wtPower double = 1;
                 options.title string = '';
                 options.hideX double = 0;
+                options.radians double {mustBeInRange(options.radians,0,1)} = 0;
+                options.hideTSLegend double = 0;
+                options.hideMWTLegend double = 0;
             end
 
             figure
-            tiledlayout('flow','TileSpacing','tight')
+            tiledlayout(3,2,'TileSpacing','tight')
             nexttile([1,2])
             MoDAL.TSPlot(time1,signal1,color=options.firstColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
@@ -1747,14 +1964,27 @@ classdef MoDAL
             MoDAL.TSPlot(time2,signal2,color=options.secondColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
                 tsLim=options.tsLim,linestyle=options.secondLineStyle)
-            legend(options.legends,options.legendsOpt{:})
+            if ~options.hideTSLegend
+                legend(options.legends,options.legendsOpt{:})
+            end
             title(options.title)
 
             % Compute Wavelet Transforms
-            [freq1,mods1] = MoDAL.WaveletSignal(time1,signal1,minFreq,maxFreq, ...
-                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
-            [freq2,mods2] = MoDAL.WaveletSignal(time2,signal2,minFreq,maxFreq, ...
-                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            tA1 = sum(time1 <= options.timeStart);
+            tB1 = sum(time1 <= options.timeEnd);
+            tA2 = sum(time2 <= options.timeStart);
+            tB2 = sum(time2 <= options.timeEnd);
+            if options.radians
+                [freq1,mods1] = MoDAL.WaveletSignal(time1(tA1:tB1)/(2*pi),signal1(tA1:tB1),minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                [freq2,mods2] = MoDAL.WaveletSignal(time2(tA2:tB2)/(2*pi),signal2(tA2:tB2),minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            else
+                [freq1,mods1] = MoDAL.WaveletSignal(time1(tA1:tB1),signal1(tA1:tB1),minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                [freq2,mods2] = MoDAL.WaveletSignal(time2(tA2:tB2),signal2(tA2:tB2),minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            end
 
             % Normalize Wavelets
             maxnorm = max([max(max(mods1)) max(max(mods2))]);
@@ -1763,11 +1993,11 @@ classdef MoDAL
 
             % Plot Wavelets
             nexttile([1,1])
-            MoDAL.WTSpectraPlot(time1,freq1,mods1,options)
+            MoDAL.WTSpectraPlot(time1(tA1:tB1),freq1,mods1,options)
             title(options.legends{1})
 
             nexttile([1,1])
-            MoDAL.WTSpectraPlot(time2,freq2,mods2,options)
+            MoDAL.WTSpectraPlot(time2(tA2:tB2),freq2,mods2,options)
             title(options.legends{2})
 
             % Plot MWT
@@ -1777,7 +2007,9 @@ classdef MoDAL
             hold on
             MoDAL.MWTPlot(freq2,max(mods2),minFreq,maxFreq,color=options.secondColor, ...
                 fontSize=options.fontSize,label=options.label)
-            legend(options.legends,options.legendsOpt{:})
+            if ~options.hideMWTLegend
+                legend(options.legends,options.legendsOpt{:})
+            end
             drawnow;
             
             if options.hideX; MoDAL.HideX;end
@@ -1834,7 +2066,17 @@ classdef MoDAL
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first two plots.
-            %
+            % radians - Sets the frequency units to Hz or rad/s. The default
+            %           value is 0 which sets the units to Hz. A value of 1 
+            %           sets the units to rad/s. If you are using rad/s, the
+            %           method assumes that minFreq and maxFreq are provided
+            %           in rad/s and not in Hz.
+            % hideTSLegend – Hides the legend on the time series plot. The
+            %                default value is 0, which shows the legend. A
+            %                value of 1 hides the legend.
+            % hideFTLegend – Hides the legend on the Fourier spectra plot. The
+            %                default value is 0, which shows the legend. A
+            %                value of 1 hides the legend.
             arguments
                 time1 (:,1) double
                 signal1 (:,1) double
@@ -1856,6 +2098,9 @@ classdef MoDAL
                 options.legendsOpt cell = {'Location','northeast','orientation','horizontal'};
                 options.title string = '';
                 options.hideX double = 0;
+                options.radians double {mustBeInRange(options.radians,0,1)} = 0;
+                options.hideTSLegend double = 0;
+                options.hideFTLegend double = 0;
             end
             if size(options.force,1) < size(options.force,2)
                 options.force = options.force';
@@ -1869,8 +2114,8 @@ classdef MoDAL
             end
 
             figure
-            tiledlayout('flow','TileSpacing','tight')
-            nexttile([1,2])
+            tiledlayout('vertical','TileSpacing','tight')
+            nexttile
             MoDAL.TSPlot(time1,signal1,color=options.firstColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
                 tsLim=options.tsLim,linestyle=options.firstLineStyle)
@@ -1878,16 +2123,22 @@ classdef MoDAL
             MoDAL.TSPlot(time2,signal2,color=options.secondColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
                 tsLim=options.tsLim,linestyle=options.secondLineStyle)
-            legend(options.legends,options.legendsOpt{:})
+            if ~options.hideTSLegend
+                legend(options.legends,options.legendsOpt{:})
+            end
             title(options.title)
 
-            nexttile([1,2])
+            nexttile
             MoDAL.FTPlot(time1,signal1,minFreq,maxFreq,force=F1,color=options.firstColor, ...
-                label=options.label,fontSize=options.fontSize,linestyle=options.firstLineStyle)
+                label=options.label,fontSize=options.fontSize,linestyle=options.firstLineStyle, ...
+                radians=options.radians)
             hold on
             MoDAL.FTPlot(time2,signal2,minFreq,maxFreq,force=F2,color=options.secondColor, ...
-                label=options.label,fontSize=options.fontSize,linestyle=options.secondLineStyle)
-            legend(options.legends,options.legendsOpt{:})
+                label=options.label,fontSize=options.fontSize,linestyle=options.secondLineStyle, ...
+                radians=options.radians)
+            if ~options.hideFTLegend
+                legend(options.legends,options.legendsOpt{:})
+            end
             drawnow;
             if options.hideX; MoDAL.HideX;end
         end
@@ -1944,6 +2195,11 @@ classdef MoDAL
             % title - Adds title to the time series plot. Default is no
             %         title.
             % hideX - Hides the xticklabels and xlabel for the first two plots.
+            % radians - Sets the frequency units to Hz or rad/s. The default
+            %           value is 0 which sets the units to Hz. A value of 1 
+            %           sets the units to rad/s. If you are using rad/s, the
+            %           method assumes that minFreq and maxFreq are provided
+            %           in rad/s and not in Hz.
             arguments
                 time (:,1) double
                 signal (:,1) double
@@ -1969,11 +2225,12 @@ classdef MoDAL
                 options.wtPower double = 1;
                 options.title string = '';
                 options.hideX double = 0;
+                options.radians double {mustBeInRange(options.radians,0,1)} = 0;
             end
 
             figure
-            tiledlayout('flow','TileSpacing','tight')
-            nexttile([1,2])
+            tiledlayout('vertical','TileSpacing','tight')
+            nexttile
             % Plot Time Series
             MoDAL.TSPlot(time,signal,color=options.firstColor,fontSize=options.fontSize, ...
                 label=options.label,timeStart=options.timeStart,timeEnd=options.timeEnd, ...
@@ -1981,23 +2238,31 @@ classdef MoDAL
             title(options.title)
 
             % Compute Wavelet Transforms
-            [freq1,mods1] = MoDAL.WaveletSignal(time,signal,minFreq,maxFreq, ...
-                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
-            [freq2,mods2] = MoDAL.WaveletSignal(time,signal,zoomMinFreq,zoomMaxFreq, ...
-                options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
-
+            tA = sum(time <= options.timeStart);
+            tB = sum(time <= options.timeEnd);
+            if options.radians
+                [freq1,mods1] = MoDAL.WaveletSignal(time(tA:tB)/(2*pi),signal(tA:tB),minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                [freq2,mods2] = MoDAL.WaveletSignal(time(tA:tB)/(2*pi),signal(tA:tB),zoomMinFreq,zoomMaxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            else
+                [freq1,mods1] = MoDAL.WaveletSignal(time(tA:tB),signal(tA:tB),minFreq,maxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                [freq2,mods2] = MoDAL.WaveletSignal(time(tA:tB),signal(tA:tB),zoomMinFreq,zoomMaxFreq, ...
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+            end
             % Normalize Wavelets
             maxnorm = max([max(max(mods1)) max(max(mods2))]);
             mods1 = mods1/maxnorm;
             mods2 = mods2/maxnorm;
 
             % Plot Wavelets
-            nexttile([1,2])
-            MoDAL.WTSpectraPlot(time,freq1,mods1,options)
+            nexttile
+            MoDAL.WTSpectraPlot(time(tA:tB),freq1,mods1,options)
             clim([0 1])
 
-            nexttile([1,2])
-            MoDAL.WTSpectraPlot(time,freq2,mods2,options)
+            nexttile
+            MoDAL.WTSpectraPlot(time(tA:tB),freq2,mods2,options)
             clim([0 1])
             if options.hideX; MoDAL.HideX;end
         end
@@ -2223,7 +2488,7 @@ classdef MoDAL
             ntemps = length(time);
             power2 = nextpow2(ntemps);
             L = 2^power2;
-            f = 1/dt*(0:L/2)/L;
+            f = 1/dt*(0:(L/2-1))/L;
 
             % Compute FFT of x
             xFFT = fft(signal,L);
@@ -2400,33 +2665,33 @@ classdef MoDAL
             % dispmm        =>   Disp. [mm]
             % dispin        =>   Disp. [in]
             % dispft        =>   Disp. [ft]
-            % dispnd        =>   Disp. [\cdot] (non-dimensional)
+            % dispnd        =>   Disp. [·] (non-dimensional)
             % vel           =>   Vel. [m/s]
             % velmm         =>   Vel. [mm/s]
             % velin         =>   Vel. [in/s]
             % velft         =>   Vel. [ft/s]
-            % velnd         =>   Vel. [\cdot] (non-dimensional)
+            % velnd         =>   Vel. [·] (non-dimensional)
             % accmm         =>   Acc. [mm/s^2]
             % acc           =>   Acc. [m/s^2]
             % accin         =>   Acc. [in/s^2]
             % accft         =>   Acc. [ft/s^2]
-            % accnd         =>   Acc. [\cdot] (non-dimensional)
+            % accnd         =>   Acc. [·] (non-dimensional)
             % force         =>   Force [N]
             % forcekn       =>   Force [kN]
             % forcelb       =>   Force [lb]
             % forcekip      =>   Force [kip]
-            % forcend       =>   Force [\cdot] (non-dimensional)
+            % forcend       =>   Force [·] (non-dimensional)
             % tension       =>   Tension [N]
             % tensionkn     =>   Tension [kN]
             % tensionlb     =>   Tension [lb]
             % tensionkip    =>   Tension [kip]
-            % tensionnd     =>   Tension [\cdot] (non-dimensional)
-            % modal         =>   Amplitude [\cdot]
+            % tensionnd     =>   Tension [·] (non-dimensional)
+            % modal         =>   Amplitude [·]
             % strain        =>   Strain [m/m]
             % microstrain   =>   Strain [\mum/m]
             % strainin      =>   Strain [in/in]
             % strainft      =>   Strain [ft/ft]
-            % imf           =>   Amplitude [\cdot]
+            % imf           =>   Amplitude [·]
             % imfdm         =>   Amplitude [m]
             % imfdmm        =>   Amplitude [mm]
             % imfdin        =>   Amplitude [in]
@@ -2453,11 +2718,11 @@ classdef MoDAL
                     case 'dispin'
                         ylabel('Disp. [in]')
                     case 'dispft'
-                        ylabel('Disp. [in]')
+                        ylabel('Disp. [ft]')
                     case 'dispmm'
                         ylabel('Disp. [mm]')
                     case 'dispnd'
-                        ylabel('Disp. [\cdot]')
+                        ylabel('Disp. [·]')
                     case 'vel'
                         ylabel('Vel. [m/s]')
                     case 'velmm'
@@ -2467,7 +2732,7 @@ classdef MoDAL
                     case 'velft'
                         ylabel('Vel. [ft/s]')
                     case 'velnd'
-                        ylabel('Vel. [\cdot]')
+                        ylabel('Vel. [·]')
                     case 'acc'
                         ylabel('Acc. [m/s^2]')
                     case 'accmm'
@@ -2477,7 +2742,7 @@ classdef MoDAL
                     case 'accft'
                         ylabel('Acc. [ft/s^2]')
                     case 'accnd'
-                        ylabel('Acc. [\cdot]')
+                        ylabel('Acc. [·]')
                     case 'force'
                         ylabel('Force [N]')
                     case 'forcekn'
@@ -2487,7 +2752,7 @@ classdef MoDAL
                     case 'forcekip'
                         ylabel('Force [kip]')
                     case 'forcend'
-                        ylabel('Force [\cdot]')
+                        ylabel('Force [·]')
                     case 'tension'
                         ylabel('Tension [N]')
                     case 'tensionkn'
@@ -2497,9 +2762,9 @@ classdef MoDAL
                     case 'tensionkip'
                         ylabel('Tension [kip]')
                     case 'tensionnd'
-                        ylabel('Tension [\cdot]')
+                        ylabel('Tension [·]')
                     case 'modal'
-                        ylabel('Amplitude [\cdot]')
+                        ylabel('Amplitude [·]')
                     case 'strain'
                         ylabel('Strain [m/m]')
                     case 'microstrain'
@@ -2509,7 +2774,7 @@ classdef MoDAL
                     case 'strainft'
                         ylabel('Strain [ft/ft]')
                     case 'imf'
-                        ylabel('Amplitude [\cdot]')
+                        ylabel('Amplitude [·]')
                     case 'imfdm'
                         ylabel('Amplitude [m]')
                     case 'imfdmm'
@@ -2548,7 +2813,7 @@ classdef MoDAL
                         ylabel('Phase Velocity [rad/s]')
                     otherwise
                         if isempty(Label)
-                            ylabel('Signal [\cdot]')
+                            ylabel('Signal [·]')
                         else
                             ylabel(Label)
                         end
@@ -2732,8 +2997,10 @@ classdef MoDAL
                 options.mirrorChop1 cell = {};
                 options.mirrorChop2 cell = {};
                 options.Mirror struct = [];
+                options.parallel double = 0;
             end
             if ~isfield(options.Mirror,'On'); options.Mirror(1).On = 0; end
+            
 
             % Wavelet Parameters
             numFreq = options.numFreq;
@@ -2747,10 +3014,12 @@ classdef MoDAL
 
             NumIMFs = 0;
             NumMaskSig = 0;
-            for b = 1:M
-                if b > 1
-                    clear('X_emd','masksig')
-                end
+            parfor b = 1:M
+                % if b > 1
+                %     % clear('X_emd','masksig')
+                %     X_emd = [];
+                %     masksig = [];
+                % end
 
                 if options.Mirror.On == 1
                     fmirr = options.Mirror.Freq{b};
@@ -2942,7 +3211,7 @@ classdef MoDAL
                             end
                             IMF_Proc = (imf1+imf2)/2;
                         catch
-
+                            EMD_OPTs = [];
                             EMD_OPTs.MAXMODES = 1;
                             EMD_OPTs.MASK = masksig;
                             EMD_OPTs.MAXITERATIONS = 100;
@@ -3230,29 +3499,29 @@ classdef MoDAL
         function [x_mirror, t_mirror] = MirrorImgSigOIni(t, x)
             % Generate the mirror image signal by an odd symmetry about t=t0
             L = length(t); xtmp = x - x(1);
-            t_mirror = [-(t(L:-1:2)-t(1))+t(1)];
-            x_mirror = [-xtmp(L:-1:2)+x(1)];
+            t_mirror = -(t(L:-1:2)-t(1))+t(1);
+            x_mirror = -xtmp(L:-1:2)+x(1);
         end
 
         function [x_mirror, t_mirror] = MirrorImgSigEIni(t, x)
             % Generate the mirror image signal by an even symmetry about t=t0
             L = length(t); xtmp = x - x(1);
-            t_mirror = [-(t(L:-1:2)-t(1))+t(1)];
-            x_mirror = [xtmp(L:-1:2)+x(1)];
+            t_mirror = -(t(L:-1:2)-t(1))+t(1);
+            x_mirror = xtmp(L:-1:2)+x(1);
         end
 
         function [x_mirror, t_mirror] = MirrorImgSigOFin(t, x)
             % Generate the mirror image signal by an odd symmetry about t=tf
             dt = t(2)-t(1); L = length(t); xtmp = x - x(end);
-            t_mirror = [t(end)+dt*[1:L-1]'];
-            x_mirror = [-xtmp(end-1:-1:end-L+1)+x(end)];
+            t_mirror = t(end)+dt*(1:L-1)';
+            x_mirror = -xtmp(end-1:-1:end-L+1)+x(end);
         end
 
         function [x_mirror, t_mirror] = MirrorImgSigEFin(t, x)
             % Generate the mirror image signal by an even symmetry about t=tf
             dt = t(2)-t(1); L = length(t); xtmp = x - x(end);
-            t_mirror = [t(end)+dt*[1:L-1]'];
-            x_mirror = [xtmp(end-1:-1:end-L+1)+x(end)];
+            t_mirror = t(end)+dt*(1:L-1)';
+            x_mirror = xtmp(end-1:-1:end-L+1)+x(end);
         end
 
         function [x_mirror,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd] = ...
@@ -3619,6 +3888,7 @@ classdef MoDAL
                 options.color string = 'k';
                 options.fontSize double = 12;
                 options.linestyle string = '-';
+                options.radians double = 0;
             end
             dt = time(2)-time(1);
             freq = 0:1/(time(end)-time(1)):1/(2*dt);
@@ -3627,16 +3897,24 @@ classdef MoDAL
                 Fx = fft(signal);
                 FF = fft(options.force);
                 FFx = abs(Fx(1:length(freq))./FF(1:length(freq)));
-                semilogy(freq,FFx,options.color,'LineStyle',options.linestyle)
+                if options.radians
+                    semilogy(2*pi*freq,FFx,options.color,'LineStyle',options.linestyle)
+                else
+                    semilogy(freq,FFx,options.color,'LineStyle',options.linestyle)
+                end
                 MoDAL.YLabel(options.label,1)
             else
                 Fx = fft(signal);
                 FFx = abs(Fx(1:length(freq)));
-                semilogy(freq,FFx,options.color,'LineStyle',options.linestyle)
+                if options.radians
+                    semilogy(2*pi*freq,FFx,options.color,'LineStyle',options.linestyle)
+                else
+                    semilogy(freq,FFx,options.color,'LineStyle',options.linestyle)
+                end
                 MoDAL.YLabel(options.label)
             end
             xlim([minFreq maxFreq])
-            MoDAL.FreqLabel(options.label)
+            MoDAL.FreqLabel(options.label,options.radians)
             set(gca,'FontSize',options.fontSize)
         end
 
@@ -3649,11 +3927,16 @@ classdef MoDAL
                 options.label string = '';
                 options.color string = 'k';
                 options.fontSize double = 12;
+                options.radians double = 0;
             end
-            plot(freq,maxmods,options.color)
+            if options.radians
+                plot(2*pi*freq,maxmods,options.color)
+            else
+                plot(freq,maxmods,options.color)
+            end
             xlim([minFreq maxFreq])
-            MoDAL.FreqLabel(options.label)
-            ylabel('Norm. Ampl. [\cdot]')
+            MoDAL.FreqLabel(options.label,options.radians)
+            ylabel('Norm. Ampl. [·]')
             set(gca,'FontSize',options.fontSize)
         end
 
@@ -3661,34 +3944,43 @@ classdef MoDAL
             imagesc(time,freq,(mods').^options.wtPower)
             set(gca,'ydir','nor')
             colormap(options.colorMap)
-            MoDAL.WTLabel(options.label)
+            MoDAL.WTLabel(options.label,options.radians)
             xlim([options.timeStart options.timeEnd])
             set(gca,'FontSize',options.fontSize)
         end
 
         function TimeLabel(label)
             if contains(label,'ND')
-                xlabel('Time [\cdot]')
+                xlabel('Time [·]')
             else
                 xlabel('Time [s]')
             end
         end
 
-        function WTLabel(label)
+        function WTLabel(label,radians)
             if contains(label,'ND')
-                xlabel('Time [\cdot]')
-                ylabel('Freq. [\cdot]')
+                xlabel('Time [·]')
+                ylabel('Freq. [·]')
             else
-                xlabel('Time [s]')
-                ylabel('Freq. [Hz]')
+                if radians
+                    xlabel('Time [s]')
+                    ylabel('Freq. [rad/s]')
+                else
+                    xlabel('Time [s]')
+                    ylabel('Freq. [Hz]')
+                end
             end
         end
 
-        function FreqLabel(label)
+        function FreqLabel(label,radians)
             if contains(label,'ND')
-                xlabel('Frequency [\cdot]')
+                xlabel('Frequency [·]')
             else
-                xlabel('Frequency [Hz]')
+                if radians
+                    xlabel('Frequency [rad/s]')
+                else
+                    xlabel('Frequency [Hz]')
+                end
             end
         end
 

@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.4.5";
+        Version = "1.4.4";
     end
 
     methods(Static)
@@ -158,8 +158,8 @@ classdef MoDAL
             R = 1-SS2/SS1;
         end
 
-        function M = MSE(signal1,signal2)
-            % Computes the mean squared error for two time series.
+        function R = MSE(signal1,signal2)
+            % Computes the mean  for two time series.
             %
             % Required Inputs
             % ---------------------------------------------
@@ -169,21 +169,9 @@ classdef MoDAL
             % Output
             % ---------------------------------------------
             % R - R-squared value
-            M = mean((signal1-signal2).^2);
-        end
-
-        function M = MAE(signal1,signal2)
-            % Computes the mean absolute error for two time series.
-            %
-            % Required Inputs
-            % ---------------------------------------------
-            % signal1 - Truth signal that signal2 is compared with
-            % signal2 – Second signal for comparison
-            %
-            % Output
-            % ---------------------------------------------
-            % R - R-squared value
-            M = mean(abs(signal1-signal2));
+            SS1 = sum((signal1-mean(signal1)).^2);
+            SS2 = sum((signal1-signal2).^2);
+            R = 1-SS2/SS1;
         end
 
         function PlotForce(time,force,options)

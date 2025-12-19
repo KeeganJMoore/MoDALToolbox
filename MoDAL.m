@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.4.5";
+        Version = "1.4.6";
     end
 
     methods(Static)
@@ -1119,8 +1119,8 @@ classdef MoDAL
                 options.timeEnd double = time(end);
                 options.tsLim double = nan;
                 options.fontSize double = 12;
-                options.mirrori string = 'e';
-                options.mirrorf string = 'e';
+                options.mirrori string = 'o';
+                options.mirrorf string = 'o';
                 options.colorMap double = MoDAL.UnbiasedOneMinusPink;
                 options.wtPower double = 1;
                 options.title string = '';
@@ -1223,8 +1223,8 @@ classdef MoDAL
                 options.tsLim double = nan;
                 options.fontSize double = 12;
                 options.force (:,1) double = [];
-                options.mirrori string = 'e';
-                options.mirrorf string = 'e';
+                options.mirrori string = 'o';
+                options.mirrorf string = 'o';
                 options.colorMap double = MoDAL.UnbiasedOneMinusPink;
                 options.wtPower double = 1;
                 options.title string = '';
@@ -1323,8 +1323,8 @@ classdef MoDAL
                 options.timeEnd double = time(end);
                 options.tsLim double = nan;
                 options.fontSize double = 12;
-                options.mirrori string = 'e';
-                options.mirrorf string = 'e';
+                options.mirrori string = 'o';
+                options.mirrorf string = 'o';
                 options.title string = '';
                 options.hideX double = 0;
                 options.radians double {mustBeInRange(options.radians,0,1)} = 0;
@@ -1420,8 +1420,8 @@ classdef MoDAL
                 options.timeEnd double = time(end);
                 options.tsLim double = nan;
                 options.fontSize double = 12;
-                options.mirrori string = 'e';
-                options.mirrorf string = 'e';
+                options.mirrori string = 'o';
+                options.mirrorf string = 'o';
                 options.colorMap double = MoDAL.UnbiasedOneMinusPink;
                 options.wtPower double = 1;
                 options.title string = '';
@@ -1540,8 +1540,8 @@ classdef MoDAL
                 options.firstLineStyle string = '-';
                 options.secondLineStyle string = '-';
                 options.force double = [];
-                options.mirrori string = 'e';
-                options.mirrorf string = 'e';
+                options.mirrori string = 'o';
+                options.mirrorf string = 'o';
                 options.colorMap double = MoDAL.UnbiasedOneMinusPink;
                 options.legends cell = {'Signal 1','Signal 2'};
                 options.legendsOpt cell = {'Location','northeast','orientation','horizontal'};
@@ -1688,8 +1688,8 @@ classdef MoDAL
                 options.firstLineStyle string = '-';
                 options.secondLineStyle string = '-';
                 options.force double = [];
-                options.mirrori string = 'e';
-                options.mirrorf string = 'e';
+                options.mirrori string = 'o';
+                options.mirrorf string = 'o';
                 options.colorMap double = MoDAL.UnbiasedOneMinusPink;
                 options.legends cell = {'Signal 1','Signal 2'};
                 options.legendsOpt cell = {'Location','northeast','orientation','horizontal'};
@@ -1854,8 +1854,8 @@ classdef MoDAL
                 options.secondColor string = 'r';
                 options.firstLineStyle string = '-';
                 options.secondLineStyle string = '-';
-                options.mirrori string = 'e';
-                options.mirrorf string = 'e';
+                options.mirrori string = 'o';
+                options.mirrorf string = 'o';
                 options.legends cell = {'Signal 1','Signal 2'};
                 options.legendsOpt cell = {'Location','northeast','orientation','horizontal'};
                 options.title string = '';
@@ -1999,8 +1999,8 @@ classdef MoDAL
                 options.secondColor string = 'r';
                 options.firstLineStyle string = '-';
                 options.secondLineStyle string = '-';
-                options.mirrori string = 'e';
-                options.mirrorf string = 'e';
+                options.mirrori string = 'o';
+                options.mirrorf string = 'o';
                 options.colorMap double = MoDAL.UnbiasedOneMinusPink;
                 options.legends cell = {'Signal 1','Signal 2'};
                 options.legendsOpt cell = {'Location','northeast','orientation','horizontal'};
@@ -2277,8 +2277,8 @@ classdef MoDAL
                 options.firstLineStyle string = '-';
                 options.secondLineStyle string = '-';
                 options.force double = [];
-                options.mirrori string = 'e';
-                options.mirrorf string = 'e';
+                options.mirrori string = 'o';
+                options.mirrorf string = 'o';
                 options.colorMap double = MoDAL.UnbiasedOneMinusPink;
                 options.wtPower double = 1;
                 options.title string = '';
@@ -2579,8 +2579,8 @@ classdef MoDAL
                 lowerFreqs double
                 upperFreqs double
                 options.motherWaveletFreq = 4;
-                options.mirrori string = 'e';
-                options.mirrorf string = 'e';
+                options.mirrori string = 'o';
+                options.mirrorf string = 'o';
                 options.chp1 = 0.2;
                 options.chp2 = 0.2;
             end
@@ -3337,8 +3337,8 @@ classdef MoDAL
                 signal (:,1) double
                 options.cutoffFreq double = 1;
                 options.filtOrder double = 3;
-                options.mirrori string = 'e';
-                options.mirrorf string = 'e';
+                options.mirrori string = 'o';
+                options.mirrorf string = 'o';
                 options.chp1 double = 0.2;
                 options.chp2 double = 0.2;
             end
@@ -3586,8 +3586,8 @@ classdef MoDAL
             arguments
                 time (:,1) double
                 signal (:,1) double
-                mirrori string = 'e';
-                mirrorf string  = 'e';
+                mirrori string = 'o';
+                mirrorf string  = 'o';
                 chp1 double = 0.2;
                 chp2 double = 0.2;
             end

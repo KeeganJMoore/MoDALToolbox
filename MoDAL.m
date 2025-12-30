@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.4.6";
+        Version = "1.4.7";
     end
 
     methods(Static)
@@ -261,7 +261,7 @@ classdef MoDAL
             set(gca,'FontSize',options.fontSize)
         end
 
-        function [natFreq,Phi] = ComputeNormalModes(stiffnessMatrix,massMatrix)
+        function [natFreq,Phi] = ComputeNormalModes(stiffnessMatrix,massMatrix,radians)
             % This code computes the natural frequencies in Hz and the mass-orthnormalized mode
             % shapes for given mass and stiffness matrices. The natural frequencies and mode shpares
             % are ordered from lowest to highest natural frequency.
@@ -276,8 +276,17 @@ classdef MoDAL
             % omega - Vector of natural frequencies in Hz.
             % Phi - Modal matrix where each column represents a mass-orthonormalized mode shape
             %       corresponding to the rows of the natural frequency vector.
+            arguments
+                stiffnessMatrix double
+                massMatrix double
+                radians double = 0;
+            end
             [Phi,natFreq] = eig(stiffnessMatrix,massMatrix,'vector');
-            natFreq = sqrt(natFreq)/(2*pi);
+            if radians == 1
+                natFreq = sqrt(natFreq);
+            else
+                natFreq = sqrt(natFreq)/(2*pi);
+            end
 
             for i = 1:length(massMatrix)
                 Phi(:,i) = Phi(:,i)/sqrt(Phi(:,i)'*massMatrix*Phi(:,i));
@@ -1731,7 +1740,7 @@ classdef MoDAL
             tA1 = sum(time1 <= options.timeStart);
             tB1 = sum(time1 <= options.timeEnd);
             tA2 = sum(time2 <= options.timeStart);
-            tB2 = sum(time2 <= time2(end));
+            tB2 = sum(time2 <= options.timeEnd);
             if options.radians
                 [freq1,mods1] = MoDAL.WaveletSignal(time1(tA1:tB1)/(2*pi),signal1(tA1:tB1),minFreq,maxFreq, ...
                     options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);

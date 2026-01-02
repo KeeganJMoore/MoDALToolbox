@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.4.7";
+        Version = "1.4.8";
     end
 
     methods(Static)
@@ -1465,7 +1465,7 @@ classdef MoDAL
             % Plot the MWT
             nexttile
             MoDAL.MWTPlot(freq,max(mods),minFreq,maxFreq, ...
-                fontSize=options.fontSize,label=options.label)
+                fontSize=options.fontSize,label=options.label,radians=options.radians)
 
             if options.hideX; MoDAL.HideX;end
         end
@@ -3995,11 +3995,7 @@ classdef MoDAL
                 options.fontSize double = 12;
                 options.radians double = 0;
             end
-            if options.radians
-                plot(2*pi*freq,maxmods,options.color)
-            else
-                plot(freq,maxmods,options.color)
-            end
+            plot(freq,maxmods,options.color)
             xlim([minFreq maxFreq])
             MoDAL.FreqLabel(options.label,options.radians)
             ylabel('Norm. Ampl. [·]')

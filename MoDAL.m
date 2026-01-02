@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.4.8";
+        Version = "1.4.9";
     end
 
     methods(Static)
@@ -2069,11 +2069,11 @@ classdef MoDAL
 
             % Plot MWT
             nexttile([1,2])
-            MoDAL.MWTPlot(freq1,max(mods1),minFreq,maxFreq, ...
-                fontSize=options.fontSize,label=options.label,color=options.firstColor)
+            MoDAL.MWTPlot(freq1,max(mods1),minFreq,maxFreq,color=options.firstColor, ...
+                fontSize=options.fontSize,label=options.label,radians=options.radians)
             hold on
             MoDAL.MWTPlot(freq2,max(mods2),minFreq,maxFreq,color=options.secondColor, ...
-                fontSize=options.fontSize,label=options.label)
+                fontSize=options.fontSize,label=options.label,radians=options.radians)
             if ~options.hideMWTLegend
                 legend(options.legends,options.legendsOpt{:})
             end

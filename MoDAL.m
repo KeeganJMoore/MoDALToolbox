@@ -796,6 +796,8 @@ classdef MoDAL
             result1 = result(1:lengthSignal,:);
             if options.complex == 0
                 modulus  = abs(result1);
+            else
+                modulus = result1;
             end
 
             if options.mirror == 1

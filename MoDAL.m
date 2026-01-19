@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.4.9";
+        Version = "1.4.10";
     end
 
     methods(Static)
@@ -757,6 +757,7 @@ classdef MoDAL
                 options.mirrorFin string = 'o';
                 options.iniFraction double = 0.2;
                 options.finFraction double = 0.2;
+                options.complex double = 0;
             end
 
             % Mirror signal if requested
@@ -793,7 +794,9 @@ classdef MoDAL
             end
             result = ifft(core2,nfourier);
             result1 = result(1:lengthSignal,:);
-            modulus  = abs(result1);
+            if options.complex == 0
+                modulus  = abs(result1);
+            end
 
             if options.mirror == 1
                 if NoMirrorIni == 0 && NoMirrorEnd == 0

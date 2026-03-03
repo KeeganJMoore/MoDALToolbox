@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.4.11";
+        Version = "1.4.12";
     end
 
     methods(Static)
@@ -257,7 +257,7 @@ classdef MoDAL
             plot(time,force,'k')
             xlim([options.timeStart options.timeEnd])
             annotation('Arrow','Position',[0.1732,0.2363,0.0786,0.0620]);
-            title(sprintf('Max Amplitude = %g %s',round(max(abs(force))),options.forceUnits))
+            title(sprintf('Max Amplitude = %4.0f %s',round(max(abs(force))),options.forceUnits))
             set(gca,'FontSize',options.fontSize)
         end
 

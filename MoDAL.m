@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.4.11";
+        Version = "1.4.13";
     end
 
     methods(Static)

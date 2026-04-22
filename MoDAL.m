@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.4.14";
+        Version = "1.4.15";
     end
 
     methods(Static)
@@ -14,35 +14,35 @@ classdef MoDAL
         end
 
         function Install
-            p1 = pwd;
+            % p1 = pwd;
 
-            url1 = 'https://drive.google.com/u/0/uc?id=1HOj6OBKCMdXw-BZ5knjRv5dy4e0ED8eq&export=download';
-            url2 = 'https://drive.google.com/u/0/uc?id=1aLm6TajZglFrJDN_-XMsgGnAv1UM8TeM&export=download';
-            url3 = 'https://drive.google.com/u/0/uc?id=12lB_prP97Tyd1rKCecJcE_7sujuv-axX&export=download';
-            url4 = 'https://drive.google.com/u/0/uc?id=1w9ogr_YQAF7pS_suddBKIE_BEesfJGki&export=download';
-
-            filename1 = 'MoDAL.m';
-            filename2 = 'emdc_fix.mexw64';
-            filename3 = 'emdc_fix.mexmaci64';
-            filename4 = 'emdc_fix.m';
-            filename5 = 'emdc_fix.mexmaca64';
-            source1 = fullfile(p1,filename1);
+            % url1 = 'https://drive.google.com/u/0/uc?id=1HOj6OBKCMdXw-BZ5knjRv5dy4e0ED8eq&export=download';
+            % url2 = 'https://drive.google.com/u/0/uc?id=1aLm6TajZglFrJDN_-XMsgGnAv1UM8TeM&export=download';
+            % url3 = 'https://drive.google.com/u/0/uc?id=12lB_prP97Tyd1rKCecJcE_7sujuv-axX&export=download';
+            % url4 = 'https://drive.google.com/u/0/uc?id=1w9ogr_YQAF7pS_suddBKIE_BEesfJGki&export=download';
+            % 
+            % filename1 = 'MoDAL.m';
+            % filename2 = 'emdc_fix.mexw64';
+            % filename3 = 'emdc_fix.mexmaci64';
+            % filename4 = 'emdc_fix.m';
+            % filename5 = 'emdc_fix.mexmaca64';
+            % source1 = fullfile(p1,filename1);
 
             if ~isfolder(userpath)
                 mkdir(userpath)
             end
 
-            destination1 = fullfile([userpath '/'],filename1);
-            destination2 = fullfile([userpath '/'],filename2);
-            destination3 = fullfile([userpath '/'],filename3);
-            destination4 = fullfile([userpath '/'],filename4);
-            destination5 = fullfile([userpath '/'],filename5);
-
-            copyfile(source1,destination1,'f')
-            if ~isfile(destination2); websave(destination2,url1); end
-            if ~isfile(destination3); websave(destination3,url2); end
-            if ~isfile(destination4); websave(destination4,url3); end
-            if ~isfile(destination5); websave(destination5,url4); end
+            % destination1 = fullfile([userpath '/'],filename1);
+            % destination2 = fullfile([userpath '/'],filename2);
+            % destination3 = fullfile([userpath '/'],filename3);
+            % destination4 = fullfile([userpath '/'],filename4);
+            % destination5 = fullfile([userpath '/'],filename5);
+            % 
+            % copyfile(source1,destination1,'f')
+            % if ~isfile(destination2); websave(destination2,url1); end
+            % if ~isfile(destination3); websave(destination3,url2); end
+            % if ~isfile(destination4); websave(destination4,url3); end
+            % if ~isfile(destination5); websave(destination5,url4); end
 
 
             destination = fullfile([userpath '/'],'startup.m');
@@ -3186,8 +3186,10 @@ classdef MoDAL
                         end
 
                         iter = 100;
-                        [imf1,~] = emdc_fix(ti,X_emd+masksig,iter,1);
-                        [imf2,~] = emdc_fix(ti,X_emd-masksig,iter,1);
+                        [imf1,~] = emd(X_emd+masksig,"SiftMaxIterations",100,"MaxNumIMF",1,"SiftRelativeTolerance",0.05);
+                        [imf2,~] = emd(X_emd-masksig,"SiftMaxIterations",100,"MaxNumIMF",1,"SiftRelativeTolerance",0.05);
+                        % [imf1,~] = emdc_fix(ti,X_emd+masksig,iter,1);
+                        % [imf2,~] = emdc_fix(ti,X_emd-masksig,iter,1);
                         if size(imf1,1) ~= size(imf2,1)
                             warning('emd:warning',['the two sets of IMFs have different sizes: ',int2str(size(imf1,1)),' and ',int2str(size(imf2,1)),' IMFs.'])
                         end

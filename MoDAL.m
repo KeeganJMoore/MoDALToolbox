@@ -14,19 +14,19 @@ classdef MoDAL
         end
 
         function Install
-            % p1 = pwd;
+            p1 = pwd;
 
-            % url1 = 'https://drive.google.com/u/0/uc?id=1HOj6OBKCMdXw-BZ5knjRv5dy4e0ED8eq&export=download';
-            % url2 = 'https://drive.google.com/u/0/uc?id=1aLm6TajZglFrJDN_-XMsgGnAv1UM8TeM&export=download';
-            % url3 = 'https://drive.google.com/u/0/uc?id=12lB_prP97Tyd1rKCecJcE_7sujuv-axX&export=download';
-            % url4 = 'https://drive.google.com/u/0/uc?id=1w9ogr_YQAF7pS_suddBKIE_BEesfJGki&export=download';
-            % 
-            % filename1 = 'MoDAL.m';
-            % filename2 = 'emdc_fix.mexw64';
-            % filename3 = 'emdc_fix.mexmaci64';
-            % filename4 = 'emdc_fix.m';
-            % filename5 = 'emdc_fix.mexmaca64';
-            % source1 = fullfile(p1,filename1);
+            url1 = 'https://drive.google.com/u/0/uc?id=1HOj6OBKCMdXw-BZ5knjRv5dy4e0ED8eq&export=download';
+            url2 = 'https://drive.google.com/u/0/uc?id=1aLm6TajZglFrJDN_-XMsgGnAv1UM8TeM&export=download';
+            url3 = 'https://drive.google.com/u/0/uc?id=12lB_prP97Tyd1rKCecJcE_7sujuv-axX&export=download';
+            url4 = 'https://drive.google.com/u/0/uc?id=1w9ogr_YQAF7pS_suddBKIE_BEesfJGki&export=download';
+
+            filename1 = 'MoDAL.m';
+            filename2 = 'emdc_fix.mexw64';
+            filename3 = 'emdc_fix.mexmaci64';
+            filename4 = 'emdc_fix.m';
+            filename5 = 'emdc_fix.mexmaca64';
+            source1 = fullfile(p1,filename1);
 
             if ~isfolder(userpath)
                 mkdir(userpath)

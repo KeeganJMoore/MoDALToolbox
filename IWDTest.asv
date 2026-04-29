@@ -1,0 +1,15 @@
+clc,clear,close all
+
+t = 0:1e-4:30;
+
+tA = sum(t <= 10);
+tB = sum(t <= 20);
+
+y = [chirp(t(1:tA),420,10,350) sin(550*2*pi*t(tA+1:tB-1)) chirp(t(tB:end),350,30,420)];
+
+
+MoDAL.PlotTSWT(t,y,0,800)
+hold on
+
+m1 = (350-420)/(10);
+Poly1 = [m1*t(1:tA)+440 370*ones(length(t(tA+1:tB-1)),1) 

@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.4.15";
+        Version = "1.4.16";
     end
 
     methods(Static)
@@ -32,17 +32,17 @@ classdef MoDAL
                 mkdir(userpath)
             end
 
-            % destination1 = fullfile([userpath '/'],filename1);
-            % destination2 = fullfile([userpath '/'],filename2);
-            % destination3 = fullfile([userpath '/'],filename3);
-            % destination4 = fullfile([userpath '/'],filename4);
-            % destination5 = fullfile([userpath '/'],filename5);
-            % 
-            % copyfile(source1,destination1,'f')
-            % if ~isfile(destination2); websave(destination2,url1); end
-            % if ~isfile(destination3); websave(destination3,url2); end
-            % if ~isfile(destination4); websave(destination4,url3); end
-            % if ~isfile(destination5); websave(destination5,url4); end
+            destination1 = fullfile([userpath '/'],filename1);
+            destination2 = fullfile([userpath '/'],filename2);
+            destination3 = fullfile([userpath '/'],filename3);
+            destination4 = fullfile([userpath '/'],filename4);
+            destination5 = fullfile([userpath '/'],filename5);
+
+            copyfile(source1,destination1,'f')
+            if ~isfile(destination2); websave(destination2,url1); end
+            if ~isfile(destination3); websave(destination3,url2); end
+            if ~isfile(destination4); websave(destination4,url3); end
+            if ~isfile(destination5); websave(destination5,url4); end
 
 
             destination = fullfile([userpath '/'],'startup.m');
@@ -2667,6 +2667,81 @@ classdef MoDAL
                 Mode = Mode(1:end-L_chp2+1);
             end
             Mode = Mode(1:length(time));
+        end
+
+        function Mode = IWDRange(time, signal, lowerFreqBoundary, upperFreqBoundary, options)
+            arguments
+                time (:,1) double
+                signal (:,1) double
+                lowerFreqBoundary (:,1) double
+                upperFreqBoundary (:,1) double
+                options.numFreq double = 250;
+                options.motherWaveletFreq = 4;
+                options.mirrori string = 'o';
+                options.mirrorf string = 'o';
+                options.chp1 = 0.2;
+                options.chp2 = 0.2;
+            end
+
+            % 1. Mirroring and FFT Setup
+            [x_mirror, L_chp1, L_chp2, ~, ~] = MoDAL.MirrorSignal(time, signal, ...
+                options.mirrori, options.mirrorf, options.chp1, options.chp2);
+
+            sig_len = length(x_mirror);
+            dt = time(2) - time(1);
+            nfourier = 2^nextpow2(sig_len);
+            npt = nfourier/2;
+            FourierFreq = (1/dt) * (0:npt-1) / nfourier;
+            signalFFT = fft(x_mirror, nfourier);
+            signalFFT(npt+1:end) = [];
+
+            % 2. DYNAMICALLY COMPUTE C_delta FOR THE SPECIFIED Fo
+            % This ensures amplitude is correct regardless of motherWaveletFreq
+            Fo = options.motherWaveletFreq;
+            % Define a high-resolution frequency vector for the integration
+            xi = linspace(0, Fo*3, 1000);
+            dxi = xi(2) - xi(1);
+            % Morlet frequency response (normalized)
+            psi_hat_ref = (pi^0.25 * sqrt(2)) * exp(-0.5 * (2*pi*(xi - Fo)).^2);
+            % Numerical integration for C_delta (Admissibility constant)
+            C_delta = sum(psi_hat_ref(2:end) ./ xi(2:end)) * dxi;
+
+            % 3. Define the Summation Range
+            minF = min(lowerFreqBoundary);
+            maxF = max(upperFreqBoundary);
+            freq_vec = linspace(minF, maxF, options.numFreq);
+            df = freq_vec(2) - freq_vec(1);
+
+            % 4. Summation Loop (The Reconstruction)
+            Mode_mirrored = zeros(sig_len, 1);
+
+            for i = 1:length(freq_vec)
+                f_target = freq_vec(i);
+                a = Fo / f_target;
+
+                % Compute Wavelet
+                psi_hat = conj((2^0.5) * pi^(1/4) * exp(-0.5 * (2 * pi * (FourierFreq' * a - Fo)).^2) * sqrt(a));
+
+                % CWT coefficients (Inverse FFT)
+                W_a = ifft(psi_hat .* signalFFT, nfourier);
+                W_a = W_a(1:sig_len);
+
+                % Time-varying Mask (extended to mirrored signal)
+                lowB_pad = interp1(time, lowerFreqBoundary, linspace(time(1), time(end), sig_len), 'linear', 'extrap');
+                highB_pad = interp1(time, upperFreqBoundary, linspace(time(1), time(end), sig_len), 'linear', 'extrap');
+                mask = (f_target >= lowB_pad') & (f_target <= highB_pad');
+
+                % Add real part contribution
+                % Formula: W(a,t) * (da / a^1.5) -> scaled for frequency
+                Mode_mirrored = Mode_mirrored + real(W_a .* mask) * (df / (f_target * sqrt(a)));
+            end
+
+            % 5. Apply the calculated Scaling Factor
+            % Factor of 2 accounts for the analytic (positive-only) FFT
+            Mode_mirrored = Mode_mirrored * (2 / C_delta);
+
+            % 6. Trim to original signal length
+            Mode = Mode_mirrored(L_chp1 : L_chp1 + length(time) - 1);
         end
 
         function Mode = IWD_Mult(time,signal,lowerFreqs,upperFreqs)

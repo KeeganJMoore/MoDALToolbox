@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.4.16";
+        Version = "1.4.17";
     end
 
     methods(Static)
@@ -672,7 +672,7 @@ classdef MoDAL
         function [f,Fx] = ComputeFFT(time,signal)
             dt = time(2)-time(1);
             L = length(time);
-            f = 1/dt*(0:(L/2-1))/L;
+            f = 1/dt*(0:floor(L/2))/L;
             Fx = fft(signal,L);
         end
 
@@ -919,7 +919,7 @@ classdef MoDAL
 
             dt = time(2)-time(1);
             L = length(time);
-            f = 1/dt*(0:(L/2-1))/L;
+            f = 1/dt*(0:floor(L/2))/L;
             FFx = fft(signal);
             Phase = unwrap(angle(FFx(1:length(f))));
             FFx = abs(FFx(1:length(f)));
@@ -970,7 +970,7 @@ classdef MoDAL
             end
             dt = time(2)-time(1);
             L = length(time);
-            f = 1/dt*(0:(L/2-1))/L;
+            f = 1/dt*(0:floor(L/2))/L;
             Fx = 2/L*fft(signal,L);
             FF = 2/L*fft(Force,L);
             Phase = Fx(1:length(f))./FF(1:length(f));
@@ -2584,7 +2584,7 @@ classdef MoDAL
             ntemps = length(time);
             power2 = nextpow2(ntemps);
             L = 2^power2;
-            f = 1/dt*(0:(L/2-1))/L;
+            f = 1/dt*(0:L/2)/L;
 
             % Compute FFT of x
             xFFT = fft(signal,L);

@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.4.17";
+        Version = "1.4.18";
     end
 
     methods(Static)
@@ -2512,102 +2512,91 @@ classdef MoDAL
         end
 
         %%%%%%% Decomposition Routines %%%%%%%%
-        function Mode = IFD(time,signal,lowerFreqs,upperFreqs)
-            % Decomposes a signal using the inverse Fourier decomposition into
-            % components corresponding to regions defined by
-            % [lowerFreqs(i) upperFreqs(i)].
+        function Mode = IFD(time, signal, lowerFreqs, upperFreqs, options)
+            % IFD Inverse Fourier Decomposition with edge protection.
+            %   Mode = IFD(time, signal, lowerFreqs, upperFreqs) decomposes a
+            %   time-domain signal (or matrix of signals) into distinct modal
+            %   components corresponding to the frequency bands defined by
+            %   [lowerFreqs(i), upperFreqs(i)].
             %
-            % Required Inputs
-            % ---------------------------------------------
-            % time = Time vector
-            % signal = Vector or matrix containing the signal or signals to be decomposed.
-            % lowerFreqs - Lower bounds of each region stored as a vector or a cell.
+            %   This function implements an exact frequency-domain rectangular
+            %   bandpass mask optimized for performance ($O(N \log N)$ execution complexity).
+            %   To mitigate spectral leakage and Gibbs phenomenon ringing at the
+            %   boundaries, signals are dynamically extended via edge-mirroring
+            %   prior to transformation and cleanly cropped before output.
             %
-            %              Providing a vector causes all signals to be decomposed into the same
-            %              signals whereas providing a cell allows one to decompose each signal
-            %              into different components.
+            %   Required Inputs:
+            %   ---------------------------------------------------------------------
+            %   time       - (:,1) double vector containing time samples.
+            %   signal     - Vector or matrix containing the signal(s) to decompose.
+            %                If matrix, columns represent independent signal channels.
+            %   lowerFreqs - Lower frequency bounds of each targeted region.
+            %                Can be a numeric vector or a cell array.
+            %   upperFreqs - Upper frequency bounds of each targeted region.
+            %                Can be a numeric vector or a cell array.
             %
-            %              If a cell is provided, then the number of entries must match the number
-            %              of signals and each entry must contain a vector of the lower bounds. If
-            %              lowerFreqs is provided as a cell, then upperFreqs must be provided as a
-            %              cell of the same size with entries of the same size.
+            %   * Formats for Frequency Bounds:
+            %     - Numeric Vector: All signal channels are decomposed into the same
+            %       set of frequency bands.
+            %     - Cell Array: Allows customized frequency bands per channel.
+            %       The number of cell entries must match the number of signal channels,
+            %       and each cell must contain a vector matching its upper/lower bound
+            %       counterpart.
             %
-            % upperFreqs - Upper bounds of each region stored as a vector or a cell.
+            %   Outputs:
+            %   ---------------------------------------------------------------------
+            %   Mode       - Array or cell array containing the pristine extracted
+            %                modal components, truncated exactly back to the size
+            %                of the input time vector.
             %
-            %              Providing a vector causes all signals to be decomposed into the same
-            %              signals whereas providing a cell allows one to decompose each signal
-            %              into different components.
-            %
-            %              If a cell is provided, then the number of entries must match the number
-            %              of signals and each entry must contain a vector of the upper bounds. If
-            %              upperFreqs is provided as a cell, then upperFreqs must be provided as a
-            %              cell of the same size with entries of the same size.
-            %
-            % Outputs
-            % ---------------------------------------------
-            % Mode = Matrix or cell containing the decomposed components from each signal.
-            %
-            %        If all signals are decomposed into the same
-            %
-            %
+            %   See also MoDAL.MirrorSignal, fft, ifft
             %
             arguments
-                time (:,1) double
+                time double
                 signal double
-                lowerFreqs
-                upperFreqs
+                lowerFreqs double
+                upperFreqs double
+                options.motherWaveletFreq = 4;
+                options.mirrori string = 'o';
+                options.mirrorf string = 'o';
+                options.chp1 = 0.2;
+                options.chp2 = 0.2;
             end
 
-            if size(signal,1) < size(signal,2); signal = signal'; end
+            % 1. Mirroring Utility (Preserve edge effects exactly)
+            [x_mirror, L_chp1, L_chp2, NoMirrorIni, NoMirrorEnd] = ...
+                MoDAL.MirrorSignal(time, signal, options.mirrori, ...
+                options.mirrorf, options.chp1, options.chp2);
 
-            cases = size(signal,2);
+            l_new = 2^nextpow2(size(x_mirror, 1));
+            nfourier = l_new;
 
-            if iscell(lowerFreqs)
-                if ~iscell(upperFreqs)
-                    error(['When the lower frequency bounds are provided as a cell, the upper' ...
-                        'frequency bounds must also be provided as a cell of the same size with ' ...
-                        'entries of the same size.'])
-                end
+            dt = time(2) - time(1);
+            Fs = 1/dt;
+            freq = Fs * (0:nfourier-1) / nfourier;
+
+            % Identify frequency indices exactly like original
+            FA = sum(freq <= lowerFreqs);
+            FB = sum(freq <= upperFreqs);
+            if FA == 0; FA = 1; end
+
+            % 2. The Entire Wavelet Transform simplifies to an exact frequency mask
+            tff = fft(x_mirror, nfourier);
+            fft_mode = zeros(nfourier, 1);
+            fft_mode(FA:FB) = tff(FA:FB);
+
+            % 3. Inverse Transform back to time domain
+            Mode = ifft(fft_mode, nfourier, 'symmetric');
+
+            % 4. Trim Edges (Identical to original)
+            if NoMirrorIni == 0 && NoMirrorEnd == 0
+                Mode = Mode(L_chp1:end-L_chp2+1);
+            elseif NoMirrorIni == 0 && NoMirrorEnd == 1
+                Mode = Mode(L_chp1:end);
+            elseif NoMirrorIni == 1 && NoMirrorEnd == 0
+                Mode = Mode(1:end-L_chp2+1);
             end
-
-            if iscell(upperFreqs)
-                if ~iscell(lowerFreqs)
-                    error(['When the upper frequency bounds are provided as a cell, the lower ' ...
-                        'frequency bounds must also be provided as a cell of the same size with' ...
-                        ' entries of the same size.'])
-                end
-            end
-
-            dt = time(2)-time(1);
-
-            %FFT Parameters
-            ntemps = length(time);
-            power2 = nextpow2(ntemps);
-            L = 2^power2;
-            f = 1/dt*(0:L/2)/L;
-
-            % Compute FFT of x
-            xFFT = fft(signal,L);
-
-
-            if ~iscell(lowerFreqs)
-                Mode = zeros(length(time),length(lowerFreqs),cases);
-                for j = 1:cases
-                    for i = 1:length(lowerFreqs)
-                        FA = sum(f <= lowerFreqs(i));
-                        FB = sum(f <= upperFreqs(i));
-                        F = zeros(L/2,1);
-                        F(FA:FB) = 1;
-                        F = [F;flipud(F)];
-                        F = F(1:L);
-                        fft_mode = F.*xFFT(:,j);
-                        ModeS = ifft(fft_mode,L,'symmetric');
-                        Mode(:,i,j) = ModeS(1:length(time));
-                    end
-                end
-            else
-
-            end
+            Mode = Mode(1:length(time));
         end
 
         function Mode = IWD(time,signal,lowerFreqs,upperFreqs,options)

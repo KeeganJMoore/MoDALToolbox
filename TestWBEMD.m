@@ -12,12 +12,16 @@ y(:,3) = 0.6*sin(2*t)+0.4*sin(3.5*t);
 % % lf = {[0 2.75],[0 2]};
 lf = [0 2.75]/(2*pi);
 uf = [2.75 4]/(2*pi);
+Modes(:,:,1) = MoDAL.IFD_Mult(t',y(:,1),lf,uf);
+Modes(:,:,2) = MoDAL.IFD_Mult(t',y(:,2),lf,uf);
+Modes(:,:,3) = MoDAL.IFD_Mult(t',y(:,3),lf,uf);
+
 
 charFreq{1} = [2;3.5]/(2*pi);
 charFreq{2} = [2;3.5]/(2*pi);
 charFreq{3} = [2;3.5]/(2*pi);
 
-Modes = MoDAL.IFD(t',y,lf,uf);
+
 Mirror.On = 0;
 % Mirror.FMirror{1} = [2;3.5];
 % Mirror.FMirror{2} = [2;3.5];
@@ -38,8 +42,3 @@ IMFs = MoDAL.WBEMD(t,y,0,5,charFreq,"Mirror",Mirror);
 size(Modes)
 %%
 figure
-plot(t,Modes(:,1,1).*Modes(:,2,1),'k',t,IMFs{1}(:,1).*IMFs{1}(:,2),'r')
-
-r =((IMFs{1}(:,1).*IMFs{1}(:,2))./y(:,1).^2);
-r(1) = 0;
-sum(r)

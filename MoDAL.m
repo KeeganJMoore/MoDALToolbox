@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.4.18";
+        Version = "1.5.0";
     end
 
     methods(Static)
@@ -668,12 +668,78 @@ classdef MoDAL
             end
         end
 
-        % Compute FFT or FRF
-        function [f,Fx] = ComputeFFT(time,signal)
+        function [f,X] = ComputeFFT(time,signal,options)
+            % Computes the FFT of a uniformly sampled signal.
+            %
+            % Inputs
+            % ------
+            % time   - Time vector (uniform sampling).
+            % signal - Signal vector, or a matrix with one signal per column.
+            %
+            % Optional Inputs
+            % ---------------
+            % sides   - "one" (default): bins 0 to N/2, for real signals.
+            %           "two": all N bins, centered (negative to positive
+            %             frequency). Required for complex signals.
+            % scaling - "amplitude" (default):
+            %             one-sided: A*cos(2*pi*f_k*t + phi) returns |X| = A.
+            %             two-sided: the same cosine returns A/2 at +f_k and -f_k;
+            %                        A*exp(j*2*pi*f_k*t) returns A at +f_k only.
+            %           "density": dt*fft. Approximates the continuous Fourier
+            %             transform, units [signal]*s.
+            %           "none": raw fft values.
+            %
+            % Outputs
+            % -------
+            % f - Frequency vector [Hz].
+            %     one-sided: (0:floor(N/2))'/(N*dt)
+            %     two-sided: ((0:N-1)' - floor(N/2))/(N*dt)
+            % X - Complex spectrum, one column per signal.
+            %
+            % No window, zero padding, or detrending is applied. Apply them
+            % before calling ComputeFFT if the application requires them.
+            arguments
+                time (:,1) double
+                signal double
+                options.sides string {mustBeMember(options.sides,["one","two"])} = "one"
+                options.scaling string {mustBeMember(options.scaling, ...
+                    ["amplitude","density","none"])} = "amplitude"
+            end
+            if isrow(signal); signal = signal(:); end
+            if options.sides == "one" && ~isreal(signal)
+                error('MoDAL:ComputeFFT', ...
+                    'Complex signals need sides="two"; a one-sided spectrum discards negative frequencies.')
+            end
             dt = time(2)-time(1);
-            L = length(time);
-            f = 1/dt*(0:floor(L/2))/L;
-            Fx = fft(signal,L);
+            N  = size(signal,1);
+            Xfull = fft(signal,[],1);
+
+            if options.sides == "two"
+                X = fftshift(Xfull,1);
+                f = ((0:N-1)' - floor(N/2))/(N*dt);
+                switch options.scaling
+                    case "amplitude"
+                        X = X/N;
+                    case "density"
+                        X = dt*X;
+                end
+                return
+            end
+
+            K = floor(N/2)+1;                   % bins 0 ... N/2
+            X = Xfull(1:K,:);
+            f = (0:K-1)'/(N*dt);
+            switch options.scaling
+                case "amplitude"
+                    X = X/N;
+                    if mod(N,2) == 0
+                        X(2:end-1,:) = 2*X(2:end-1,:);  % don't double DC or Nyquist
+                    else
+                        X(2:end,:) = 2*X(2:end,:);      % odd N has no Nyquist bin
+                    end
+                case "density"
+                    X = dt*X;
+            end
         end
 
         % Compute WT
@@ -758,6 +824,11 @@ classdef MoDAL
                 options.iniFraction double = 0.2;
                 options.finFraction double = 0.2;
                 options.complex double = 0;
+                options.normalization string {mustBeMember(options.normalization, ...
+                    ["energy","amplitude"])} = "amplitude";
+                options.wavelet string {mustBeMember(options.wavelet,["morlet","morse"])} = "morlet";
+                options.morseGamma double {mustBePositive} = 3;
+                options.morseBeta double = [];
             end
 
             % Mirror signal if requested
@@ -771,7 +842,18 @@ classdef MoDAL
             lengthSignal = length(signal);
             df = (maxFreq-minFreq)/options.numFreq; % Frequency Resolution
             freq = minFreq:df:maxFreq; % Prescribe the frequencies of interest
-            waveletScale = options.motherWaveletFreq./freq; % Compute the wavelet scales
+            if options.wavelet == "morse"
+                gam = options.morseGamma;
+                if isempty(options.morseBeta)
+                    bet = (2*pi*options.motherWaveletFreq)^2/gam;  % same resolution as Morlet
+                else
+                    bet = options.morseBeta;
+                end
+                wPeak = (bet/gam)^(1/gam);           % peak frequency of the Morse wavelet
+                waveletScale = wPeak./(2*pi*freq);   % Compute the wavelet scales
+            else
+                waveletScale = options.motherWaveletFreq./freq; % Compute the wavelet scales
+            end
 
             % FFT Parameters
             nfourier = 2^nextpow2(lengthSignal); % Zero-filling
@@ -782,11 +864,33 @@ classdef MoDAL
             signalFFT = fft(signal,nfourier);
             signalFFT(npt+1:end) = [];
 
-            % Vectorized Computation of Wavelet Transform of signal
-            core2 = bsxfun(@times,conj(bsxfun(@times,(2^0.5)*pi^(1/4)*exp(-0.5* ...
-                (2*pi*(bsxfun(@times,Fourierfreq',waveletScale)- ...
-                options.motherWaveletFreq)).^2),sqrt(waveletScale))), ...
-                signalFFT);
+            % Mother wavelet in the frequency domain at every scale, peak = 1
+            if options.wavelet == "morse"
+                W = 2*pi*bsxfun(@times,Fourierfreq',waveletScale);       % a*omega
+                G = exp(bet*log(W/wPeak) + (bet/gam)*(1 - (W/wPeak).^gam));
+                G(W <= 0) = 0;
+                % Unit-energy constant so that (1/2pi)*integral of (cEnergy*G)^2 = 1
+                logI = log(wPeak) + 2*bet/gam - log(gam) + gammaln((2*bet+1)/gam) ...
+                    - ((2*bet+1)/gam)*log(2*bet/gam);
+                cEnergy = sqrt(2*pi*exp(-logI));
+            else
+                G = exp(-0.5*(2*pi*(bsxfun(@times,Fourierfreq',waveletScale) - ...
+                    options.motherWaveletFreq)).^2);
+                cEnergy = (2^0.5)*pi^(1/4);
+            end
+
+            if options.normalization == "amplitude"
+                psiHat = 2*G;                                          % ridge height = amplitude
+            else
+                psiHat = bsxfun(@times,cEnergy*G,sqrt(waveletScale)); % 1/sqrt(a) scaling
+            end
+            core2 = bsxfun(@times,conj(psiHat),signalFFT);
+
+            % % Vectorized Computation of Wavelet Transform of signal
+            % core2 = bsxfun(@times,conj(bsxfun(@times,(2^0.5)*pi^(1/4)*exp(-0.5* ...
+            %     (2*pi*(bsxfun(@times,Fourierfreq',waveletScale)- ...
+            %     options.motherWaveletFreq)).^2),sqrt(waveletScale))), ...
+            %     signalFFT);
 
             % Assert Admissibility Condition
             if minFreq == 0
@@ -917,12 +1021,9 @@ classdef MoDAL
                 Same double = 0;
             end
 
-            dt = time(2)-time(1);
-            L = length(time);
-            f = 1/dt*(0:floor(L/2))/L;
-            FFx = fft(signal);
-            Phase = unwrap(angle(FFx(1:length(f))));
-            FFx = abs(FFx(1:length(f)));
+            [f,Fx] = MoDAL.ComputeFFT(time,signal);
+            Phase = unwrap(angle(Fx));
+            FFx = abs(Fx);
             if Same ~= 1
                 figure
             end
@@ -968,16 +1069,13 @@ classdef MoDAL
                 Color double = [0 0 0];
                 Same double = 0;
             end
-            dt = time(2)-time(1);
-            L = length(time);
-            f = 1/dt*(0:floor(L/2))/L;
-            Fx = 2/L*fft(signal,L);
-            FF = 2/L*fft(Force,L);
-            Phase = Fx(1:length(f))./FF(1:length(f));
+            [f,Fx] = MoDAL.ComputeFFT(time,signal,scaling="none");
+            [~,FF] = MoDAL.ComputeFFT(time,Force,scaling="none");
+            Phase = Fx./FF;
             tol = 1e-6;
             Phase(abs(Phase) < tol) = 0;
             Phase = unwrap(angle(Phase));
-            FFx = abs(Fx(1:length(f))./FF(1:length(f)));
+            FFx = abs(Fx./FF);
             if Same ~= 1
                 figure
             end
@@ -2599,6 +2697,54 @@ classdef MoDAL
             Mode = Mode(1:length(time));
         end
 
+        function Mode = IFD_Mult(time, signal, lowerFreqs, upperFreqs, options)
+            % Ideal (rectangular) frequency-domain decomposition into several bands.
+            %
+            % lowerFreqs, upperFreqs - Vectors of band limits [Hz], one entry per mode.
+            % Mode - length(time) x numel(lowerFreqs); column k is the content
+            %        of signal between lowerFreqs(k) and upperFreqs(k).
+            % Mirroring options are the same as IFD.
+            arguments
+                time double
+                signal double
+                lowerFreqs double
+                upperFreqs double
+                options.mirrori string = 'o';
+                options.mirrorf string = 'o';
+                options.chp1 = 0.2;
+                options.chp2 = 0.2;
+            end
+            assert(numel(lowerFreqs) == numel(upperFreqs), ...
+                'lowerFreqs and upperFreqs must have the same number of entries.')
+
+            [x_mirror, L_chp1, L_chp2, NoMirrorIni, NoMirrorEnd] = ...
+                MoDAL.MirrorSignal(time, signal, options.mirrori, ...
+                options.mirrorf, options.chp1, options.chp2);
+
+            nfourier = 2^nextpow2(size(x_mirror, 1));
+            dt = time(2) - time(1);
+            freq = (1/dt) * (0:nfourier-1) / nfourier;
+            tff = fft(x_mirror, nfourier);
+
+            Mode = zeros(length(time), numel(lowerFreqs));
+            for k = 1:numel(lowerFreqs)
+                FA = sum(freq <= lowerFreqs(k));
+                FB = sum(freq <= upperFreqs(k));
+                if FA == 0; FA = 1; end
+                fft_mode = zeros(nfourier, 1);
+                fft_mode(FA:FB) = tff(FA:FB);
+                m = ifft(fft_mode, nfourier, 'symmetric');
+                if NoMirrorIni == 0 && NoMirrorEnd == 0
+                    m = m(L_chp1:end-L_chp2+1);
+                elseif NoMirrorIni == 0 && NoMirrorEnd == 1
+                    m = m(L_chp1:end);
+                elseif NoMirrorIni == 1 && NoMirrorEnd == 0
+                    m = m(1:end-L_chp2+1);
+                end
+                Mode(:,k) = m(1:length(time));
+            end
+        end
+
         function Mode = IWD(time,signal,lowerFreqs,upperFreqs,options)
             arguments
                 time double
@@ -4051,13 +4197,11 @@ classdef MoDAL
                 options.linestyle string = '-';
                 options.radians double = 0;
             end
-            dt = time(2)-time(1);
-            freq = 0:1/(time(end)-time(1)):1/(2*dt);
             L = length(time);
             if length(options.force) == L
-                Fx = fft(signal);
-                FF = fft(options.force);
-                FFx = abs(Fx(1:length(freq))./FF(1:length(freq)));
+                [freq,Fx] = MoDAL.ComputeFFT(time,signal,scaling="none");
+                [~,FF]    = MoDAL.ComputeFFT(time,options.force,scaling="none");
+                FFx = abs(Fx./FF);
                 if options.radians
                     semilogy(2*pi*freq,FFx,options.color,'LineStyle',options.linestyle)
                 else
@@ -4065,8 +4209,8 @@ classdef MoDAL
                 end
                 MoDAL.YLabel(options.label,1)
             else
-                Fx = fft(signal);
-                FFx = abs(Fx(1:length(freq)));
+                [freq,Fx] = MoDAL.ComputeFFT(time,signal);
+                FFx = abs(Fx);
                 if options.radians
                     semilogy(2*pi*freq,FFx,options.color,'LineStyle',options.linestyle)
                 else

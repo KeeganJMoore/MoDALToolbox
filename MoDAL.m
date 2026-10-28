@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.5.0";
+        Version = "1.5.1";
     end
 
     methods(Static)
@@ -999,6 +999,77 @@ classdef MoDAL
             KR = T'*K*T;
             CR = T'*C*T;
         end
+
+        % Compute Improved Reduced System (IRS) Reduction
+        function [KR,MR,DR,T,Kss,TG] = IRSReduction(K,M,D,SlaveDofs,nIter)
+            %  Improved Reduced System (IRS) reduction (O'Callahan, 1989)
+            %  The IRS method corrects the Guyan (static) transformation by adding
+            %  an approximation of the slave-DOF inertia forces, which improves the
+            %  accuracy of the reduced model's natural frequencies and mode shapes.
+            %
+            %  T_IRS = T_G + S*M*T_G*inv(M_G)*K_G
+            %
+            %  where T_G is the Guyan transformation, M_G and K_G are the Guyan
+            %  reduced mass and stiffness matrices, and S is a full-size matrix with
+            %  inv(Kss) in the slave-slave block and zeros elsewhere.
+            %
+            %  If nIter > 1, the iterated IRS method is used (Friswell et al., 1995):
+            %  T_(i+1) = T_G + S*M*T_i*inv(M_i)*K_i, which converges to the exact
+            %  lowest modes of the full model.
+            %
+            % K , M , D : Full order stiffness, mass, & damping matrices
+            % SlaveDofs : Dofs to be deattached from system
+            % nIter     : (optional) number of IRS iterations, default = 1 (standard IRS)
+            % KR, MR, DR: Reduced stiffness, mass, & damping matrices
+            % T         : IRS transformation matrix
+            % Kss       : Slave stiffness matrix
+            % TG        : Guyan transformation matrix
+            %
+            % Example:
+            % k = [2 3 5;6 7 8;3 2 1];
+            % [kr,~,~,Tr] = IRSReduction(k,k,k,1)
+            %
+            %
+            % Keegan J. Moore
+            % Based on GuyanReduction.m (03/03/2017)
+
+            if nargin < 5 || isempty(nIter)
+                nIter = 1;
+            end
+
+            Dof = size(K,1);
+            SlaveDofs = sort(SlaveDofs(:)).';
+            index = 1:Dof;
+            index(SlaveDofs) = [];              % Master dofs
+
+            % Partitioned stiffness
+            Kss = K(SlaveDofs,SlaveDofs);
+            Ksm = K(SlaveDofs,index);
+
+            % Guyan (static) transformation
+            P = -(Kss \ Ksm);
+            TG = zeros(Dof,length(index));
+            TG(SlaveDofs,:) = P;
+            TG(index,:) = eye(length(index));
+
+            % S matrix: inv(Kss) in the slave-slave block, zeros elsewhere
+            S = zeros(Dof);
+            S(SlaveDofs,SlaveDofs) = inv(Kss);
+
+            % IRS correction (iterated if nIter > 1)
+            T = TG;
+            for it = 1:nIter
+                Mi = T'*M*T;
+                Ki = T'*K*T;
+                T = TG + S*M*T*(Mi \ Ki);
+            end
+
+            % Reduced matrices
+            MR = T'*M*T;
+            KR = T'*K*T;
+            DR = T'*D*T;
+        end
+
 
         % Plot FFT/FRF
         function PlotFFT(time,signal,minFreq,maxFreq,Label,Color,Same)

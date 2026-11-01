@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.5.1";
+        Version = "1.5.2";
     end
 
     methods(Static)
@@ -3467,10 +3467,10 @@ classdef MoDAL
                         end
 
                         iter = 100;
-                        [imf1,~] = emd(X_emd+masksig,"SiftMaxIterations",100,"MaxNumIMF",1,"SiftRelativeTolerance",0.05);
-                        [imf2,~] = emd(X_emd-masksig,"SiftMaxIterations",100,"MaxNumIMF",1,"SiftRelativeTolerance",0.05);
-                        % [imf1,~] = emdc_fix(ti,X_emd+masksig,iter,1);
-                        % [imf2,~] = emdc_fix(ti,X_emd-masksig,iter,1);
+                        % [imf1,~] = emd(X_emd+masksig,"SiftMaxIterations",100,"MaxNumIMF",1,"SiftRelativeTolerance",0.05);
+                        % [imf2,~] = emd(X_emd-masksig,"SiftMaxIterations",100,"MaxNumIMF",1,"SiftRelativeTolerance",0.05);
+                        [imf1,~] = emdc_fix(ti,X_emd+masksig,iter,1);
+                        [imf2,~] = emdc_fix(ti,X_emd-masksig,iter,1);
                         if size(imf1,1) ~= size(imf2,1)
                             warning('emd:warning',['the two sets of IMFs have different sizes: ',int2str(size(imf1,1)),' and ',int2str(size(imf2,1)),' IMFs.'])
                         end
@@ -3484,7 +3484,7 @@ classdef MoDAL
                             end
                             imf2(max(S1,S2),1) = 0;
                         end
-                        IMF_Proc(1,1,:,:) = (imf1+imf2)/2;
+                        IMF_Proc = (imf1+imf2)/2;
                         NumIMFs = NumIMFs+1;
                     else
 
@@ -3508,8 +3508,9 @@ classdef MoDAL
 
                         fprintf('Optimizing IMF %g of Time Series %g.\n ',o,b)
 
-                        [freq,modx] = MoDAL.WaveletTransform(time,signal(:,b),minFreq,iterMaxFreq, ...
-                            'numFreq',numFreq,'motherWaveletFreq',motherWaveletFreq,'Mirror',0);
+                        [freq,modx] = MoDAL.WaveletTransform(time,X_emd,minFreq,iterMaxFreq, ...
+                            'numFreq',numFreq,'motherWaveletFreq',motherWaveletFreq,'Mirror',0, ...
+                            'normalization','energy');
                         modx(isnan(modx))=0;
                         if options.Mirror.On == 1
                             if fg(o,1) == fmirr(m)
@@ -4377,7 +4378,8 @@ classdef MoDAL
             IMF = (imf1+imf2)/2;
 
             [fr,modIMF] = MoDAL.WaveletTransform(time,IMF(1,:)',minFreq,maxFreq, ...
-                'numFreq',numFreq,'motherWaveletFreq',motherWaveletFreq);
+                'numFreq',numFreq,'motherWaveletFreq',motherWaveletFreq,'Mirror',0, ...
+                'normalization','energy');
 
             modIMF(isnan(modIMF)) = 0;
             maxmodIMF = max(modIMF)/modx_normer;

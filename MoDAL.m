@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.5.3";
+        Version = "1.5.4";
     end
 
     methods(Static)
@@ -819,8 +819,8 @@ classdef MoDAL
                 options.numFreq double = 100;
                 options.motherWaveletFreq double = 2;
                 options.mirror double = 1;
-                options.mirrorIni string = 'o';
-                options.mirrorFin string = 'o';
+                options.mirrorIni string = 'e';
+                options.mirrorFin string = 'e';
                 options.iniFraction double = 0.2;
                 options.finFraction double = 0.2;
                 options.complex double = 0;
@@ -1302,8 +1302,8 @@ classdef MoDAL
                 options.timeEnd double = time(end);
                 options.tsLim double = nan;
                 options.fontSize double = 12;
-                options.mirrori string = 'o';
-                options.mirrorf string = 'o';
+                options.mirrori string = 'e';
+                options.mirrorf string = 'e';
                 options.colorMap double = MoDAL.UnbiasedOneMinusPink;
                 options.wtPower double = 1;
                 options.title string = '';
@@ -1406,8 +1406,8 @@ classdef MoDAL
                 options.tsLim double = nan;
                 options.fontSize double = 12;
                 options.force (:,1) double = [];
-                options.mirrori string = 'o';
-                options.mirrorf string = 'o';
+                options.mirrori string = 'e';
+                options.mirrorf string = 'e';
                 options.colorMap double = MoDAL.UnbiasedOneMinusPink;
                 options.wtPower double = 1;
                 options.title string = '';
@@ -1506,8 +1506,8 @@ classdef MoDAL
                 options.timeEnd double = time(end);
                 options.tsLim double = nan;
                 options.fontSize double = 12;
-                options.mirrori string = 'o';
-                options.mirrorf string = 'o';
+                options.mirrori string = 'e';
+                options.mirrorf string = 'e';
                 options.title string = '';
                 options.hideX double = 0;
                 options.radians double {mustBeInRange(options.radians,0,1)} = 0;
@@ -1603,8 +1603,8 @@ classdef MoDAL
                 options.timeEnd double = time(end);
                 options.tsLim double = nan;
                 options.fontSize double = 12;
-                options.mirrori string = 'o';
-                options.mirrorf string = 'o';
+                options.mirrori string = 'e';
+                options.mirrorf string = 'e';
                 options.colorMap double = MoDAL.UnbiasedOneMinusPink;
                 options.wtPower double = 1;
                 options.title string = '';
@@ -1723,8 +1723,8 @@ classdef MoDAL
                 options.firstLineStyle string = '-';
                 options.secondLineStyle string = '-';
                 options.force double = [];
-                options.mirrori string = 'o';
-                options.mirrorf string = 'o';
+                options.mirrori string = 'e';
+                options.mirrorf string = 'e';
                 options.colorMap double = MoDAL.UnbiasedOneMinusPink;
                 options.legends cell = {'Signal 1','Signal 2'};
                 options.legendsOpt cell = {'Location','northeast','orientation','horizontal'};
@@ -1876,8 +1876,8 @@ classdef MoDAL
                 options.firstLineStyle string = '-';
                 options.secondLineStyle string = '-';
                 options.force double = [];
-                options.mirrori string = 'o';
-                options.mirrorf string = 'o';
+                options.mirrori string = 'e';
+                options.mirrorf string = 'e';
                 options.colorMap double = MoDAL.UnbiasedOneMinusPink;
                 options.legends cell = {'Signal 1','Signal 2'};
                 options.legendsOpt cell = {'Location','northeast','orientation','horizontal'};
@@ -2047,8 +2047,8 @@ classdef MoDAL
                 options.secondColor string = 'r';
                 options.firstLineStyle string = '-';
                 options.secondLineStyle string = '-';
-                options.mirrori string = 'o';
-                options.mirrorf string = 'o';
+                options.mirrori string = 'e';
+                options.mirrorf string = 'e';
                 options.legends cell = {'Signal 1','Signal 2'};
                 options.legendsOpt cell = {'Location','northeast','orientation','horizontal'};
                 options.title string = '';
@@ -2201,8 +2201,8 @@ classdef MoDAL
                 options.secondColor string = 'r';
                 options.firstLineStyle string = '-';
                 options.secondLineStyle string = '-';
-                options.mirrori string = 'o';
-                options.mirrorf string = 'o';
+                options.mirrori string = 'e';
+                options.mirrorf string = 'e';
                 options.colorMap double = MoDAL.UnbiasedOneMinusPink;
                 options.legends cell = {'Signal 1','Signal 2'};
                 options.legendsOpt cell = {'Location','northeast','orientation','horizontal'};
@@ -2484,8 +2484,8 @@ classdef MoDAL
                 options.firstLineStyle string = '-';
                 options.secondLineStyle string = '-';
                 options.force double = [];
-                options.mirrori string = 'o';
-                options.mirrorf string = 'o';
+                options.mirrori string = 'e';
+                options.mirrorf string = 'e';
                 options.colorMap double = MoDAL.UnbiasedOneMinusPink;
                 options.wtPower double = 1;
                 options.title string = '';
@@ -2726,8 +2726,8 @@ classdef MoDAL
                 lowerFreqs double
                 upperFreqs double
                 options.motherWaveletFreq = 4;
-                options.mirrori string = 'o';
-                options.mirrorf string = 'o';
+                options.mirrori string = 'e';
+                options.mirrorf string = 'e';
                 options.chp1 = 0.2;
                 options.chp2 = 0.2;
             end
@@ -2780,8 +2780,8 @@ classdef MoDAL
                 signal double
                 lowerFreqs double
                 upperFreqs double
-                options.mirrori string = 'o';
-                options.mirrorf string = 'o';
+                options.mirrori string = 'e';
+                options.mirrorf string = 'e';
                 options.chp1 = 0.2;
                 options.chp2 = 0.2;
             end
@@ -2823,8 +2823,8 @@ classdef MoDAL
                 lowerFreqs double
                 upperFreqs double
                 options.motherWaveletFreq = 4;
-                options.mirrori string = 'o';
-                options.mirrorf string = 'o';
+                options.mirrori string = 'e';
+                options.mirrorf string = 'e';
                 options.chp1 = 0.2;
                 options.chp2 = 0.2;
             end
@@ -2883,8 +2883,8 @@ classdef MoDAL
                 upperFreqBoundary (:,1) double
                 options.numFreq double = 250;
                 options.motherWaveletFreq = 4;
-                options.mirrori string = 'o';
-                options.mirrorf string = 'o';
+                options.mirrori string = 'e';
+                options.mirrorf string = 'e';
                 options.chp1 = 0.2;
                 options.chp2 = 0.2;
             end
@@ -3659,8 +3659,8 @@ classdef MoDAL
                 signal (:,1) double
                 options.cutoffFreq double = 1;
                 options.filtOrder double = 3;
-                options.mirrori string = 'o';
-                options.mirrorf string = 'o';
+                options.mirrori string = 'e';
+                options.mirrorf string = 'e';
                 options.chp1 double = 0.2;
                 options.chp2 double = 0.2;
             end
@@ -3694,7 +3694,8 @@ classdef MoDAL
             [x_mirror,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd] = MoDAL.MirrorSignal(time,signal,mirrori,mirrorf,chp1,chp2);
 
             [fr,mods] = MoDAL.WaveletTransform(time,x_mirror,minFreq,maxFreq, ...
-                'motherWaveletFreq',motherWaveletFreq,'numFreq',numFreq);
+                'motherWaveletFreq',motherWaveletFreq,'numFreq',numFreq, ...
+                'mirror',0,'normalization','energy');
 
             if NoMirrorIni == 0 && NoMirrorEnd == 0
                 mods = mods(L_chp1:end-L_chp2+1,:);

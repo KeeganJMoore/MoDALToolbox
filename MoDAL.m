@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.5.2";
+        Version = "1.5.3";
     end
 
     methods(Static)
@@ -2618,13 +2618,13 @@ classdef MoDAL
                     if options.showNodeNumber ~= 0
                         for i = 1:length(coordinates(:,1))
                             text(coordinates(i,1),coordinates(i,2),coordinates(i,3),int2str(i),....
-                                'fontsize',10,'color','r');
+                                'fontsize',10,'color',[0.63 0 0]);
                         end
                     end
                     if options.showElementNumber ~= 0
                         for i = 1:nel
                             text(sum(X(:,i))/4,sum(Y(:,i))/4,sum(Z(:,i))/4,int2str(i),.....
-                                'fontsize',10,'color','g') ;
+                                'fontsize',10,'color',[0 0.4 0]) ;
                         end
                     end
 

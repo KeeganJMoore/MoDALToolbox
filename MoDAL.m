@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.5.4";
+        Version = "1.5.5";
     end
 
     methods(Static)
@@ -1290,6 +1290,9 @@ classdef MoDAL
             %           sets the units to rad/s. If you are using rad/s, the
             %           method assumes that minFreq and maxFreq are provided
             %           in rad/s and not in Hz.
+            % WTNormalization - Normalizes the CWT using either 'energy' (1/sqrt(a)) or
+            %                   'amplitude' (1/a). The default option is 'amplitude'.
+            %
             arguments
                 time (:,1) double
                 signal (:,1) double
@@ -1309,6 +1312,7 @@ classdef MoDAL
                 options.title string = '';
                 options.hideX double = 0;
                 options.radians double {mustBeInRange(options.radians,0,1)} = 0;
+                options.WTNormalization string = 'amplitude';
             end
 
             figure
@@ -1327,10 +1331,12 @@ classdef MoDAL
             tB = sum(time <= options.timeEnd);
             if options.radians
                 [freq,mods] = MoDAL.WaveletSignal(time(tA:tB)/(2*pi),signal(tA:tB),minFreq,maxFreq, ...
-                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf, ...
+                    options.WTNormalization);
             else
                 [freq,mods] = MoDAL.WaveletSignal(time(tA:tB),signal(tA:tB),minFreq,maxFreq, ...
-                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf, ...
+                    options.WTNormalization);
             end
             mods = mods/max(mods,[],'All');
 
@@ -1392,6 +1398,8 @@ classdef MoDAL
             %           sets the units to rad/s. If you are using rad/s, the
             %           method assumes that minFreq and maxFreq are provided
             %           in rad/s and not in Hz.
+            % WTNormalization - Normalizes the CWT using either 'energy' (1/sqrt(a)) or
+            %                   'amplitude' (1/a). The default option is 'amplitude'.
 
             arguments
                 time (:,1) double
@@ -1413,6 +1421,7 @@ classdef MoDAL
                 options.title string = '';
                 options.hideX double = 0;
                 options.radians double {mustBeInRange(options.radians,0,1)} = 0;
+                options.WTNormalization string = 'amplitude';
             end
 
             figure
@@ -1430,10 +1439,12 @@ classdef MoDAL
             tB = sum(time <= options.timeEnd);
             if options.radians
                 [freq,mods] = MoDAL.WaveletSignal(time(tA:tB)/(2*pi),signal(tA:tB),minFreq,maxFreq, ...
-                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf, ...
+                    options.WTNormalization);
             else
                 [freq,mods] = MoDAL.WaveletSignal(time(tA:tB),signal(tA:tB),minFreq,maxFreq, ...
-                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf, ...
+                    options.WTNormalization);
             end
             mods = mods/max(mods,[],'All');
 
@@ -1493,6 +1504,8 @@ classdef MoDAL
             %           sets the units to rad/s. If you are using rad/s, the
             %           method assumes that minFreq and maxFreq are provided
             %           in rad/s and not in Hz.
+            % WTNormalization - Normalizes the CWT using either 'energy' (1/sqrt(a)) or
+            %                   'amplitude' (1/a). The default option is 'amplitude'.
 
             arguments
                 time (:,1) double
@@ -1511,6 +1524,7 @@ classdef MoDAL
                 options.title string = '';
                 options.hideX double = 0;
                 options.radians double {mustBeInRange(options.radians,0,1)} = 0;
+                options.WTNormalization string = 'amplitude';
             end
 
             figure
@@ -1527,10 +1541,12 @@ classdef MoDAL
             tB = sum(time <= options.timeEnd);
             if options.radians
                 [freq,mods] = MoDAL.WaveletSignal(time(tA:tB)/(2*pi),signal(tA:tB),minFreq,maxFreq, ...
-                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf, ...
+                    options.WTNormalization);
             else
                 [freq,mods] = MoDAL.WaveletSignal(time(tA:tB),signal(tA:tB),minFreq,maxFreq, ...
-                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf, ...
+                    options.WTNormalization);
             end
             mods = mods/max(mods,[],'All');
 
@@ -1590,6 +1606,8 @@ classdef MoDAL
             %           sets the units to rad/s. If you are using rad/s, the
             %           method assumes that minFreq and maxFreq are provided
             %           in rad/s and not in Hz.
+            % WTNormalization - Normalizes the CWT using either 'energy' (1/sqrt(a)) or
+            %                   'amplitude' (1/a). The default option is 'amplitude'.
 
             arguments
                 time (:,1) double
@@ -1610,6 +1628,7 @@ classdef MoDAL
                 options.title string = '';
                 options.hideX double = 0;
                 options.radians double {mustBeInRange(options.radians,0,1)} = 0;
+                options.WTNormalization string = 'amplitude';
             end
 
             figure
@@ -1626,10 +1645,12 @@ classdef MoDAL
             tB = sum(time <= options.timeEnd);
             if options.radians
                 [freq,mods] = MoDAL.WaveletSignal(time(tA:tB)/(2*pi),signal(tA:tB),minFreq,maxFreq, ...
-                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf, ...
+                    options.WTNormalization);
             else
                 [freq,mods] = MoDAL.WaveletSignal(time(tA:tB),signal(tA:tB),minFreq,maxFreq, ...
-                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf, ...
+                    options.WTNormalization);
             end
 
             % Plot the WT
@@ -1703,6 +1724,8 @@ classdef MoDAL
             %           sets the units to rad/s. If you are using rad/s, the
             %           method assumes that minFreq and maxFreq are provided
             %           in rad/s and not in Hz.
+            % WTNormalization - Normalizes the CWT using either 'energy' (1/sqrt(a)) or
+            %                   'amplitude' (1/a). The default option is 'amplitude'.
 
             arguments
                 time1 (:,1) double
@@ -1732,6 +1755,7 @@ classdef MoDAL
                 options.title string = '';
                 options.hideX double = 0;
                 options.radians double {mustBeInRange(options.radians,0,1)} = 0;
+                options.WTNormalization string = 'amplitude';
             end
 
             figure
@@ -1761,14 +1785,18 @@ classdef MoDAL
             if tB2 == 0; tB2 = length(time2); end
             if options.radians
                 [freq1,mods1] = MoDAL.WaveletSignal(time1(tA1:tB1)/(2*pi),signal1(tA1:tB1),minFreq,maxFreq, ...
-                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf, ...
+                    options.WTNormalization);
                 [freq2,mods2] = MoDAL.WaveletSignal(time2(tA2:tB2)/(2*pi),signal2(tA2:tB2),minFreq,maxFreq, ...
-                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf, ...
+                    options.WTNormalization);
             else
                 [freq1,mods1] = MoDAL.WaveletSignal(time1(tA1:tB1),signal1(tA1:tB1),minFreq,maxFreq, ...
-                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf, ...
+                    options.WTNormalization);
                 [freq2,mods2] = MoDAL.WaveletSignal(time2(tA2:tB2),signal2(tA2:tB2),minFreq,maxFreq, ...
-                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf, ...
+                    options.WTNormalization);
             end
 
             % Normalize Wavelets
@@ -1857,6 +1885,8 @@ classdef MoDAL
             % hideFTLegend – Hides the legend on the Fourier spectra plot. The
             %                default value is 0, which shows the legend. A
             %                value of 1 hides the legend.
+            % WTNormalization - Normalizes the CWT using either 'energy' (1/sqrt(a)) or
+            %                   'amplitude' (1/a). The default option is 'amplitude'.
             arguments
                 time1 (:,1) double
                 signal1 (:,1) double
@@ -1887,6 +1917,7 @@ classdef MoDAL
                 options.radians double {mustBeInRange(options.radians,0,1)} = 0;
                 options.hideTSLegend double = 0;
                 options.hideFTLegend double = 0;
+                options.WTNormalization string = 'amplitude';
             end
             if size(options.force,1) < size(options.force,2)
                 options.force = options.force';
@@ -1927,14 +1958,18 @@ classdef MoDAL
             if tB2 == 0; tB2 = length(time2); end
             if options.radians
                 [freq1,mods1] = MoDAL.WaveletSignal(time1(tA1:tB1)/(2*pi),signal1(tA1:tB1),minFreq,maxFreq, ...
-                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf, ...
+                    options.WTNormalization);
                 [freq2,mods2] = MoDAL.WaveletSignal(time2(tA2:tB2)/(2*pi),signal2(tA2:tB2),minFreq,maxFreq, ...
-                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf, ...
+                    options.WTNormalization);
             else
                 [freq1,mods1] = MoDAL.WaveletSignal(time1(tA1:tB1),signal1(tA1:tB1),minFreq,maxFreq, ...
-                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf, ...
+                    options.WTNormalization);
                 [freq2,mods2] = MoDAL.WaveletSignal(time2(tA2:tB2),signal2(tA2:tB2),minFreq,maxFreq, ...
-                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf, ...
+                    options.WTNormalization);
             end
 
             % Normalize Wavelets
@@ -2029,6 +2064,8 @@ classdef MoDAL
             % hideMWTLegend – Hides the legend on the MWT plot. The
             %                default value is 0, which shows the legend. A
             %                value of 1 hides the legend.
+            % WTNormalization - Normalizes the CWT using either 'energy' (1/sqrt(a)) or
+            %                   'amplitude' (1/a). The default option is 'amplitude'.
             arguments
                 time1 (:,1) double
                 signal1 (:,1) double
@@ -2056,6 +2093,7 @@ classdef MoDAL
                 options.radians double {mustBeInRange(options.radians,0,1)} = 0;
                 options.hideTSLegend double = 0;
                 options.hideMWTLegend double = 0;
+                options.WTNormalization string = 'amplitude';
             end
 
             figure
@@ -2088,14 +2126,18 @@ classdef MoDAL
             if tB2 == 0; tB2 = length(time2); end
             if options.radians
                 [freq1,mods1] = MoDAL.WaveletSignal(time1(tA1:tB1)/(2*pi),signal1(tA1:tB1),minFreq,maxFreq, ...
-                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf, ...
+                    options.WTNormalization);
                 [freq2,mods2] = MoDAL.WaveletSignal(time2(tA2:tB2)/(2*pi),signal2(tA2:tB2),minFreq,maxFreq, ...
-                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf, ...
+                    options.WTNormalization);
             else
                 [freq1,mods1] = MoDAL.WaveletSignal(time1(tA1:tB1),signal1(tA1:tB1),minFreq,maxFreq, ...
-                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf, ...
+                    options.WTNormalization);
                 [freq2,mods2] = MoDAL.WaveletSignal(time2(tA2:tB2),signal2(tA2:tB2),minFreq,maxFreq, ...
-                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf, ...
+                    options.WTNormalization);
             end
 
             % Normalize Wavelets
@@ -2183,6 +2225,8 @@ classdef MoDAL
             % hideMWTLegend – Hides the legend on the MWT plot. The
             %                default value is 0, which shows the legend. A
             %                value of 1 hides the legend.
+            % WTNormalization - Normalizes the CWT using either 'energy' (1/sqrt(a)) or
+            %                   'amplitude' (1/a). The default option is 'amplitude'.
             arguments
                 time1 (:,1) double
                 signal1 (:,1) double
@@ -2212,6 +2256,7 @@ classdef MoDAL
                 options.radians double {mustBeInRange(options.radians,0,1)} = 0;
                 options.hideTSLegend double = 0;
                 options.hideMWTLegend double = 0;
+                options.WTNormalization string = 'amplitude';
             end
 
             figure
@@ -2241,14 +2286,18 @@ classdef MoDAL
             if tB2 == 0; tB2 = length(time2); end
             if options.radians
                 [freq1,mods1] = MoDAL.WaveletSignal(time1(tA1:tB1)/(2*pi),signal1(tA1:tB1),minFreq,maxFreq, ...
-                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf,...
+                    options.WTNormalization);
                 [freq2,mods2] = MoDAL.WaveletSignal(time2(tA2:tB2)/(2*pi),signal2(tA2:tB2),minFreq,maxFreq, ...
-                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf,...
+                    options.WTNormalization);
             else
                 [freq1,mods1] = MoDAL.WaveletSignal(time1(tA1:tB1),signal1(tA1:tB1),minFreq,maxFreq, ...
-                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf,...
+                    options.WTNormalization);
                 [freq2,mods2] = MoDAL.WaveletSignal(time2(tA2:tB2),signal2(tA2:tB2),minFreq,maxFreq, ...
-                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf,...
+                    options.WTNormalization);
             end
 
             % Normalize Wavelets
@@ -2342,6 +2391,8 @@ classdef MoDAL
             % hideFTLegend – Hides the legend on the Fourier spectra plot. The
             %                default value is 0, which shows the legend. A
             %                value of 1 hides the legend.
+            % WTNormalization - Normalizes the CWT using either 'energy' (1/sqrt(a)) or
+            %                   'amplitude' (1/a). The default option is 'amplitude'.
             arguments
                 time1 (:,1) double
                 signal1 (:,1) double
@@ -2465,6 +2516,8 @@ classdef MoDAL
             %           sets the units to rad/s. If you are using rad/s, the
             %           method assumes that minFreq and maxFreq are provided
             %           in rad/s and not in Hz.
+            % WTNormalization - Normalizes the CWT using either 'energy' (1/sqrt(a)) or
+            %                   'amplitude' (1/a). The default option is 'amplitude'.
             arguments
                 time (:,1) double
                 signal (:,1) double
@@ -2491,6 +2544,7 @@ classdef MoDAL
                 options.title string = '';
                 options.hideX double = 0;
                 options.radians double {mustBeInRange(options.radians,0,1)} = 0;
+                options.WTNormalization string = 'amplitude';
             end
 
             figure
@@ -2507,14 +2561,18 @@ classdef MoDAL
             tB = sum(time <= options.timeEnd);
             if options.radians
                 [freq1,mods1] = MoDAL.WaveletSignal(time(tA:tB)/(2*pi),signal(tA:tB),minFreq,maxFreq, ...
-                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf, ...
+                    options.WTNormalization);
                 [freq2,mods2] = MoDAL.WaveletSignal(time(tA:tB)/(2*pi),signal(tA:tB),zoomMinFreq,zoomMaxFreq, ...
-                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf, ...
+                    options.WTNormalization);
             else
                 [freq1,mods1] = MoDAL.WaveletSignal(time(tA:tB),signal(tA:tB),minFreq,maxFreq, ...
-                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf, ...
+                    options.WTNormalization);
                 [freq2,mods2] = MoDAL.WaveletSignal(time(tA:tB),signal(tA:tB),zoomMinFreq,zoomMaxFreq, ...
-                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf);
+                    options.numFreq,options.motherWaveletFreq,options.mirrori,options.mirrorf, ...
+                    options.WTNormalization);
             end
             % Normalize Wavelets
             maxnorm = max([max(max(mods1)) max(max(mods2))]);
@@ -3687,7 +3745,18 @@ classdef MoDAL
             omega = MoDAL.UnmirrorSignal(omega2,L_chp1,L_chp2,NoMirrorIni,NoMirrorEnd);
         end
 
-        function [fr,mods] = WaveletSignal(time,signal,minFreq,maxFreq,numFreq,motherWaveletFreq,mirrori,mirrorf)
+        function [fr,mods] = WaveletSignal(time,signal,minFreq,maxFreq,numFreq,motherWaveletFreq,mirrori,mirrorf,normalization)
+            arguments
+                time (:,1) double
+                signal (:,1) double
+                minFreq double
+                maxFreq double
+                numFreq double = 200;
+                motherWaveletFreq double = 2;
+                mirrori string = 'e';
+                mirrorf string = 'e';
+                normalization = 'amplitude';
+            end
             chp1 = 0.2;
             chp2 = 0.2;
 
@@ -3695,7 +3764,7 @@ classdef MoDAL
 
             [fr,mods] = MoDAL.WaveletTransform(time,x_mirror,minFreq,maxFreq, ...
                 'motherWaveletFreq',motherWaveletFreq,'numFreq',numFreq, ...
-                'mirror',0,'normalization','energy');
+                'mirror',0,'normalization',normalization);
 
             if NoMirrorIni == 0 && NoMirrorEnd == 0
                 mods = mods(L_chp1:end-L_chp2+1,:);

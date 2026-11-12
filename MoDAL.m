@@ -1,6 +1,6 @@
 classdef MoDAL
     properties (Constant)
-        Version = "1.5.5";
+        Version = "1.5.6";
     end
 
     methods(Static)
@@ -156,6 +156,27 @@ classdef MoDAL
             SS1 = sum((signal1-mean(signal1)).^2);
             SS2 = sum((signal1-signal2).^2);
             R = 1-SS2/SS1;
+        end
+
+        function N = NNSE(signal1,signal2)
+            % Computes the normalized Nash-Sutcliffe Efficiency metric for two time series.
+            %
+            % Required Inputs
+            % ---------------------------------------------
+            % signal1 - Truth signal that signal2 is compared with
+            % signal2 – Second signal for comparison
+            %
+            % Output
+            % ---------------------------------------------
+            % N - NNSE value
+            arguments
+                signal1 (:,1) double
+                signal2 (:,1) double
+            end
+            SS1 = sum((signal1-mean(signal1)).^2);
+            SS2 = sum((signal1-signal2).^2);
+            R = 1-SS2/SS1;
+            N = 1/(2-R);
         end
 
         function M = MSE(signal1,signal2)
